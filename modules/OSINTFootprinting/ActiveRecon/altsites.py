@@ -42,7 +42,7 @@ def altsites(web):
     from core.methods.print import posintact
     posintact("alternative sites") 
 
-    print(GR+' [*] Setting User-Agents...')
+    print(f'{GR} [*] Setting User-Agents...')
     time.sleep(0.7)
     user_agents = {
             'Chrome on Windows 8.1' : 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36',
@@ -53,23 +53,25 @@ def altsites(web):
 
     print(GR+'\n [*] Preparing for series of requests...')
     for name, agent in user_agents.items():
-        print(B+' [+] Using User-Agent : '+C+name)
-        print(GR+' [+] UA Value : '+O+agent)
+        print(f'{B} [+] Using User-Agent : {C}{name}')
+        print(f'{GR} [+] UA Value : {O}{agent}')
         headers = {'User-Agent' : agent}
-        print(GR+' [*] Making the request...')
+        print(f'{GR} [*] Making the request...')
         req = requests.get(web, headers=headers, allow_redirects=True, verify=True)
         responses[name] = req
 
     print(C+'\n [!] Comparing base value standards...')
     time.sleep(0.5)
     for name, response in responses.items():
-        print(O+' [+] User-Agent :'+C+color.TR3+C+G+name+C+color.TR2+C)
-        print(O+' [+] Response :'+C+color.TR3+C+G+str(response)+C+color.TR2+C)
+        print(f'{O} [+] User-Agent :{C}{color.TR3}{C}{G}{name}{C}{color.TR2}{C}')
+        print(
+            f'{O} [+] Response :{C}{color.TR3}{C}{G}{str(response)}{C}{color.TR2}{C}'
+        )
         md5s[name] = hashlib.md5(response.text.encode('utf-8')).hexdigest()
 
     print(C+'\n [!] Matching hexdigest signatures...')
     for name, md5 in md5s.items():
-        print(O+' [+] User-Agent :'+C+color.TR3+C+G+name+C+color.TR2+C)
+        print(f'{O} [+] User-Agent :{C}{color.TR3}{C}{G}{name}{C}' + color.TR2 + C)
         print(O+' [+] Hex-Digest :'+C+color.TR3+C+G+str(md5)+C+color.TR2+C)
         if name != 'Chrome on Windows 8.1':
             if md5 != md5s['Chrome on Windows 8.1']:

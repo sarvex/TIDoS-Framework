@@ -62,46 +62,53 @@ def serverdetect(web):
     #print(R+'    D E T E C T   S E R V E R')
     #print(R+'   ===========================\n')
     from core.methods.print import posintact
-    posintact("detect server") 
+    posintact("detect server")
     time.sleep(0.4)
-    print(GR+' [*] Checking server status...')
+    print(f'{GR} [*] Checking server status...')
     web = web.replace('https://','')
     web = web.replace('http://','')
     try:
         ip_addr = socket.gethostbyname(web)
-        print(G+' [+] Server detected online...'+C+color.TR2+C)
+        print(f'{G} [+] Server detected online...{C}{color.TR2}{C}')
         time.sleep(0.5)
-        print(O+' [+] Server IP :>'+C+color.TR3+C+G+ip_addr+C+color.TR2+C)
-        data = "IP: " + ip_addr
+        print(f'{O} [+] Server IP :>{C}{color.TR3}{C}{G}{ip_addr}{C}{color.TR2}{C}')
+        data = f"IP: {ip_addr}"
         save_data(database, module, lvl1, lvl2, lvl3, name, data)
     except Exception:
-        print(R+' [-] Server seems down...')
+        print(f'{R} [-] Server seems down...')
 
-    print(GR+' [*] Trying to identify backend...')
+    print(f'{GR} [*] Trying to identify backend...')
     time.sleep(0.4)
-    web = 'http://' + web
+    web = f'http://{web}'
     try:
         r = requests.get(web)
         header = r.headers['Server']
         if 'cloudflare' in header:
-            print(C+' [+] The website is behind Cloudflare.')
-            print(G+' [+] Server : Cloudflare'+C+color.TR2+C)
+            print(f'{C} [+] The website is behind Cloudflare.')
+            print(f'{G} [+] Server : Cloudflare{C}{color.TR2}{C}')
             time.sleep(0.4)
-            print(O+' [+] Use the "Cloudflare" VulnLysis module to try bypassing Clouflare...'+C)
+            print(
+                f'{O} [+] Use the "Cloudflare" VulnLysis module to try bypassing Clouflare...{C}'
+            )
 
         else:
-            print(G+' [+] Server : '+header+C+color.TR2+C)
-        data = "Server: " + header
+            print(f'{G} [+] Server : {header}{C}{color.TR2}{C}')
+        data = f"Server: {header}"
         save_data(database, module, lvl1, lvl2, lvl3, name, data)
         try:
-            print(O+' [+] Running On :'+C+color.TR3+C+G+ r.headers['X-Powered-By']+C+color.TR2+C)
+            print(
+                f'{O} [+] Running On :{C}{color.TR3}{C}{G}'
+                + r.headers['X-Powered-By']
+                + C
+                + color.TR2
+                + C
+            )
             data = "Running On: " + r.headers['X-Powered-By']
             save_data(database, module, lvl1, lvl2, lvl3, name, data)
         except Exception:
             pass
     except Exception:
-        print(R+' [-] Failed to identify server. Some error occured!')
-        pass
+        print(f'{R} [-] Failed to identify server. Some error occured!')
 
 # ===============================================================#
 # THIS HAS BEEN MIGRATED TO THE VULNERABILITY ENUMERATION MODULE

@@ -41,23 +41,25 @@ def apachestat(web):
     from core.methods.print import posintact
     posintact("apache status") 
 
-    print(C+' [*] Importing fuzz parameters...')
+    print(f'{C} [*] Importing fuzz parameters...')
     time.sleep(0.7)
-    print(GR+' [*] Initializing bruteforce...')
+    print(f'{GR} [*] Initializing bruteforce...')
     with open('files/fuzz-db/apachestat_paths.lst','r') as paths:
         for path in paths:
             path = path.replace('\n','')
             url = web + path
-            print(B+' [+] Trying : '+C+url)
+            print(f'{B} [+] Trying : {C}{url}')
             resp = requests.get(url, allow_redirects=False, verify=False, timeout=7)
-            if resp.status_code == 200 or resp.status_code == 302:
-                print(O+' [+] Apache Server Status Enabled at :'+C+color.TR3+C+G+url+C+color.TR2+C)
+            if resp.status_code in {200, 302}:
+                print(
+                    f'{O} [+] Apache Server Status Enabled at :{C}{color.TR3}{C}{G}{url}{C}{color.TR2}{C}'
+                )
                 flag = 0x01
                 save_data(database, module, lvl1, lvl2, lvl3, name, url)
 
     if flag == 0x00:
         save_data(database, module, lvl1, lvl2, lvl3, name, "No server status enabled.")
-        print(R+' [-] No server status enabled!')
+        print(f'{R} [-] No server status enabled!')
 
     print(C+' [+] Apache server status completed!\n')
 

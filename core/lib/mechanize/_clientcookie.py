@@ -167,7 +167,7 @@ class CookieJar(CJ):
                 if (k in value_attrs) or (k in boolean_attrs):
                     if (v is None and
                             k not in ("port", "comment", "commenturl")):
-                        _debug("   missing value for %s attribute" % k)
+                        _debug(f"   missing value for {k} attribute")
                         bad_cookie = True
                         break
                     standard[k] = v

@@ -43,22 +43,25 @@ def commentssrc(web):
     #print(R+'     C O M M E N T S   S C R A P E R')
     #print(R+'    =================================')
     from core.methods.print import posintact
-    posintact("comment scraper") 
-    print(C+' [It is recommended to run ScanEnum/Crawlers')
+    posintact("comment scraper")
+    print(f'{C} [It is recommended to run ScanEnum/Crawlers')
     print(C+'       before running this module]\n')
-    print(GR+' [*] Importing links...')
+    print(f'{GR} [*] Importing links...')
     po = web.split('//')[1]
     #p = 'tmp/logs/'+po+'-logs/'+po+'-links.lst'
     links = [web]
 
     for w in links:
-        print(GR+' [*] Making the request...')
+        print(f'{GR} [*] Making the request...')
         req = requests.get(w).text
-        print(C+' [!] Setting parse parameters...')
+        print(f'{C} [!] Setting parse parameters...')
         comments = re.findall('<!--(.*)-->', req)
-        print(O+" [+] Searching for comments on page:"+C+color.TR3+C+G+web+C+color.TR2+C+'\n')
+        print(
+            f"{O} [+] Searching for comments on page:{C}{color.TR3}{C}{G}{web}{C}{color.TR2}{C}"
+            + '\n'
+        )
         for comment in comments:
-            print(C+'   '+comment)
+            print(f'{C}   {comment}')
             save_data(database, module, lvl1, lvl2, lvl3, name, comment)
             time.sleep(0.03)
             found = 0x01
@@ -74,8 +77,7 @@ def commentssrc(web):
                 combline = web+newline
                 urls.append(str(combline))
         except Exception:
-            pass
-            print(R+' [-] Unhandled Exception Occured!')
+            print(f'{R} [-] Unhandled Exception Occured!')
 
     try:
         for uurl in urls:
@@ -83,18 +85,18 @@ def commentssrc(web):
             req = requests.get(uurl)
             comments = re.findall('<!--(.*)-->',req.text)
             for comment in comments:
-                print(C+'   '+comment)
+                print(f'{C}   {comment}')
                 save_data(database, module, lvl1, lvl2, lvl3, name, comment)
                 time.sleep(0.03)
 
     except Exception:
-        print(R+' [-] Outbound Query Exception...')
+        print(f'{R} [-] Outbound Query Exception...')
 
     if found == 0x00:
-        print(R+' [-] No comments found in source code!')
+        print(f'{R} [-] No comments found in source code!')
         save_data(database, module, lvl1, lvl2, lvl3, name, "No comments found in source code.")
 
-    print(G+' [+] Comments Scraping Done!'+C+color.TR2+C)
+    print(f'{G} [+] Comments Scraping Done!{C}{color.TR2}{C}')
 
 def attack(web):
     web = web.fullurl

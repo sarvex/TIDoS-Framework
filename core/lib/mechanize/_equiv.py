@@ -38,12 +38,9 @@ def replace_entity(match):
         ent = 'hellip'
     if ent.startswith('#'):
         try:
-            if ent[1] in ('x', 'X'):
-                num = int(ent[2:], 16)
-            else:
-                num = int(ent[1:])
+            num = int(ent[2:], 16) if ent[1] in ('x', 'X') else int(ent[1:])
         except Exception:
-            return '&' + ent + ';'
+            return f'&{ent};'
         if num > 255:
             return my_unichr(num)
         try:
@@ -54,7 +51,7 @@ def replace_entity(match):
         return html5_entities[ent]
     except KeyError:
         pass
-    return '&' + ent + ';'
+    return f'&{ent};'
 
 
 class Bytes(bytes):
@@ -184,7 +181,7 @@ class HTTPEquivParser(object):
                 (mb, b"<?", self.handle_other),
                 (mb, b"<", self.handle_possible_start_tag)
         )
-        for byte in self.data:
+        for _ in self.data:
             keep_parsing = True
             for matcher, key, method in dispatch:
                 if matcher(key):

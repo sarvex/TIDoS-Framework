@@ -138,16 +138,3 @@ def as_unicode(x, encoding='utf-8'):
     return x
 
 
-if False:
-    (HTTPError, urlsplit, urljoin, urlparse, urlunparse, urlencode,
-     HTTPMessage, splitattr, urllib_splithost, getproxies, ftpwrapper,
-     urllib_proxy_bypass, splituser, splitpasswd, splitport,
-     splitvalue, splittype, unquote, unwrap, url2pathname)
-    pathname2url, RobotFileParser, URLError, quote, HTTPConnection
-    HTTPSConnection, StringIO, addinfourl, install_opener, build_opener
-    ProxyHandler, quote_plus, urlopen
-    (DEFAULT_HTTP_PORT, CookiePolicy, DefaultCookiePolicy,
-     FileCookieJar, LoadError, LWPCookieJar, _debug,
-     domain_match, eff_request_host, escape_path, is_HDN,
-     lwp_cookie_str, reach, request_path, request_port,
-     user_domain_match, Cookie, CookieJar, MozillaCookieJar, request_host)

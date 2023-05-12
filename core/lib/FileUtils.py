@@ -49,8 +49,7 @@ class File(object):
         return self.content()
 
     def getLines(self):
-        for line in FileUtils.getLines(self.path):
-            yield line
+        yield from FileUtils.getLines(self.path)
 
     def __cmp__(self, other):
         if not isinstance(other, File):
@@ -67,10 +66,7 @@ class File(object):
 class FileUtils(object):
     @staticmethod
     def buildPath(*pathComponents):
-        if pathComponents:
-            path = os.path.join(*pathComponents)
-        else:
-            path = ''
+        path = os.path.join(*pathComponents) if pathComponents else ''
         return path
 
     @staticmethod
@@ -96,7 +92,7 @@ class FileUtils(object):
     def read(fileName):
         result = ''
         with open(fileName, 'r') as fd:
-            for line in fd.readlines():
+            for line in fd:
                 result += line
         return result
 
@@ -130,9 +126,6 @@ class FileUtils(object):
     @staticmethod
     def writeLines(fileName, lines):
         content = None
-        if type(lines) is list:
-            content = "\n".join(lines)
-        else:
-            content = lines
+        content = "\n".join(lines) if type(lines) is list else lines
         with open(fileName, "w") as f:
             f.writelines(content)

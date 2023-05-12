@@ -63,11 +63,10 @@ class TIDcon(Cmd):
         if arg:
             # XXX check arg syntax
             try:
-                func = getattr(self, 'help_' + arg)
+                func = getattr(self, f'help_{arg}')
             except AttributeError:
                 try:
-                    doc = getattr(self, 'do_' + arg).__doc__
-                    if doc:
+                    if doc := getattr(self, f'do_{arg}').__doc__:
                         self.stdout.write("%s\n" % str(doc))
                         return
                 except AttributeError:
@@ -109,15 +108,12 @@ class TIDcon(Cmd):
     """
     def sessionhelper(self, inp, gui):
         print()
-        if gui:
-            victims, options = sessionparse(inp, load=False)
-        else:
-            victims, options = sessionparse(inp)
+        victims, options = sessionparse(inp, load=False) if gui else sessionparse(inp)
         for module, props in options.items():
             self.do_load(module)
-            print("{}{}{}{}\n".format(C, color.UNDERLINE, module, C))
+            print(f"{C}{color.UNDERLINE}{module}{C}\n")
             for opt, val in props.items():
-                self.do_set("{} {}".format(opt, val))
+                self.do_set(f"{opt} {val}")
             self.do_leave("")
             print()
         if gui:
@@ -135,9 +131,9 @@ class TIDcon(Cmd):
             varis.targets.append(target)
             for module, props in options.items():
                 self.do_load(module)
-                print("{}{}{}{}\n".format(C, color.UNDERLINE, module, C))
+                print(f"{C}{color.UNDERLINE}{module}{C}\n")
                 for opt, val in props.items():
-                    self.do_set("{} {}".format(opt, val))
+                    self.do_set(f"{opt} {val}")
                 self.do_attack("")
                 self.do_leave("")
                 print()
@@ -152,7 +148,13 @@ class TIDcon(Cmd):
             #    varis.targets.remove(i)
             session = inp.split("load")[1].strip()
             if session == "":
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Syntax: sessions [load|save <SESS_ID>] [list]")
+                print(
+                    f"{R} [-] "
+                    + "\033[0m"
+                    + color.UNDERLINE
+                    + "\033[1m"
+                    + "Syntax: sessions [load|save <SESS_ID>] [list]"
+                )
                 varis.targets = b
             else:
                 try:
@@ -160,30 +162,47 @@ class TIDcon(Cmd):
                         session = session.replace("--val","").strip()
                         #print(session)
                         victims = self.sessionhelper(session, gui)
-                        print(G+" [+] Restored VAL session: {}".format(session)+C+color.TR2+C)
+                        print(f"{G} [+] Restored VAL session: {session}{C}{color.TR2}{C}")
                         if om != "":
                             self.do_load(om)
                     else:
                         load(session)
-                        print(G+" [+] Restored session: {}.".format(session)+C+color.TR2+C)
+                        print(f"{G} [+] Restored session: {session}.{C}{color.TR2}{C}")
                 except FileNotFoundError:
-                    print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "{}: no such session file.".format(session))
+                    print(
+                        f"{R} [-] "
+                        + "\033[0m"
+                        + color.UNDERLINE
+                        + "\033[1m"
+                        + f"{session}: no such session file."
+                    )
                     varis.targets = b
         elif "save" in inp:
             session = inp.split("save")[1].strip()
             if session == "":
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Syntax: sessions [load|save <SESS_ID>] [list]")
+                print(
+                    f"{R} [-] "
+                    + "\033[0m"
+                    + color.UNDERLINE
+                    + "\033[1m"
+                    + "Syntax: sessions [load|save <SESS_ID>] [list]"
+                )
+            elif ".val" in session or "--val" in inp:
+                session = session.replace("--val","").strip()
+                modlist = select.list("all", False)
+                createVal(varis.targets, modlist, session)
             else:
-                if ".val" in session or "--val" in inp:
-                    session = session.replace("--val","").strip()
-                    modlist = select.list("all", False)
-                    createVal(varis.targets, modlist, session)
-                else:
-                    save(session)
+                save(session)
         elif "list" in inp:
-            os.system("{} core/sessioncache".format(varis.CMD_LS))
+            os.system(f"{varis.CMD_LS} core/sessioncache")
         else:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Syntax: sessions [load|save <SESS_ID>] [list]")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Syntax: sessions [load|save <SESS_ID>] [list]"
+            )
         if gui:
             return victims
 
@@ -231,28 +250,49 @@ class TIDcon(Cmd):
             if "on" in inp.lower():
                 #check if Tor service is running; if not, prompt user to start it
                 if acc or not initv:
-                    p = torpipe(True)
-                    if p:
-                        print(O+" [+] Tor"+C+color.TR3+C+G+"ON"+C+color.TR2+C)
+                    if p := torpipe(True):
+                        print(f"{O} [+] Tor{C}{color.TR3}{C}{G}ON{C}{color.TR2}{C}")
                     else:
                         varis.tor = False
                         if shell:
-                            start = input(color.END+" [?] Do you want to start the Tor service? (enter if not) :> ")
+                            start = input(
+                                f"{color.END} [?] Do you want to start the Tor service? (enter if not) :> "
+                            )
                         else:
                             start = "yes"
                         if start != "":
                             try:
                                 os.system("systemctl start tor")
-                                print(G+" [+] Tor service successfully started."+C+color.TR2+C)
+                                print(f"{G} [+] Tor service successfully started.{C}{color.TR2}{C}")
                                 self.do_tor("on")
                             except Exception as e:
-                                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Starting Tor service failed:"+"\033[0m"+ color.CURSIVE +"\n{}".format(e) + C)
+                                print(
+                                    f"{R} [-] "
+                                    + "\033[0m"
+                                    + color.UNDERLINE
+                                    + "\033[1m"
+                                    + "Starting Tor service failed:"
+                                    + "\033[0m"
+                                    + color.CURSIVE
+                                    + f"\n{e}"
+                                    + C
+                                )
                 else:
-                    print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Starting Tor service failed: Initial IP not set."+"\033[0m" + C)
+                    print(
+                        f"{R} [-] "
+                        + "\033[0m"
+                        + color.UNDERLINE
+                        + "\033[1m"
+                        + "Starting Tor service failed: Initial IP not set."
+                        + "\033[0m"
+                        + C
+                    )
             elif "off" in inp.lower():
                 torpipe(False)
                 if shell:
-                    stop = input(color.END+" [?] Do you want to stop the Tor service? (enter if not) :> ")
+                    stop = input(
+                        f"{color.END} [?] Do you want to stop the Tor service? (enter if not) :> "
+                    )
                 else:
                     stop = "yes"
                 if stop != "":
@@ -260,7 +300,18 @@ class TIDcon(Cmd):
                         os.system("systemctl stop tor")
                         print(G+" [+] Tor service successfully stopped."+C+color.TR2+C)
                     except Exception as e:
-                        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Stopping Tor service failed:"+"\033[0m"+ color.CURSIVE +"\n{}".format(e) + C)
+                        print(
+                            R
+                            + " [-] "
+                            + "\033[0m"
+                            + color.UNDERLINE
+                            + "\033[1m"
+                            + "Stopping Tor service failed:"
+                            + "\033[0m"
+                            + color.CURSIVE
+                            + f"\n{e}"
+                            + C
+                        )
                 print(O+" [+] Tor"+C+color.TR3+C+G+"OFF"+C+color.TR2+C)
             else:
                 print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Syntax: tor on|off")
@@ -283,7 +334,13 @@ class TIDcon(Cmd):
             import core.methods.netinfo as netinfo
             netinfo.info()
         except Exception as e:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Something went wrong: {}".format(e))
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + f"Something went wrong: {e}"
+            )
 
     def help_netinfo(self):
         print("""
@@ -315,7 +372,13 @@ class TIDcon(Cmd):
 
     def do_find(self, inp):
         if inp == "":
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Please enter a search term.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Please enter a search term."
+            )
         else:
             select.search(inp)
 
@@ -356,12 +419,24 @@ class TIDcon(Cmd):
 
     def do_attack(self, inp):
         if varis.module == "":
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No module loaded.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No module loaded."
+            )
             return None
         elif "arpscan" in varis.module or "shellcraft" in varis.module or "encodeall" in varis.module or "hashes" in varis.module or "imgext" in varis.module:
             select.attack("")
         elif len(varis.targets) <= 0:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No target(s) set.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No target(s) set."
+            )
             return None
         else:
             for i in varis.targets:
@@ -383,7 +458,13 @@ class TIDcon(Cmd):
 
     def do_vicadd(self, inp):
         if not inp:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No target specified.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No target specified."
+            )
             return
         if "--ip" in inp:
             ip = inp.replace("--ip", "").strip()
@@ -414,10 +495,20 @@ class TIDcon(Cmd):
         try:
             def filecheck():
                 if not os.path.exists(varis.phpsploit):
-                    print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No phpsploit installation under {}".format(varis.phpsploit) + color.END)
+                    print(
+                        f"{R} [-] "
+                        + "\033[0m"
+                        + color.UNDERLINE
+                        + "\033[1m"
+                        + "No phpsploit installation under {}".format(
+                            varis.phpsploit
+                        )
+                        + color.END
+                    )
                     phpsplt = input(" [§] Enter path to phpsploit script :> ")
                     varis.phpsploit = phpsplt
                     filecheck()
+
             filecheck()
             if inp == "":
                 os.system("python3 {}".format(varis.phpsploit))
@@ -426,7 +517,13 @@ class TIDcon(Cmd):
         except SystemExit:
             pass
         except Exception:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "phpsploit crashed.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "phpsploit crashed."
+            )
 
     def help_phpsploit(self):
         print("""
@@ -450,9 +547,15 @@ class TIDcon(Cmd):
             varis.targets = list(filter(lambda a: a.fullurl != inp, varis.targets))
             found = old != varis.targets
             if found:
-                print(O+" [+] Deleted Target:"+C+color.TR3+C+G+inp+C+color.TR2+C)
+                print(f"{O} [+] Deleted Target:{C}{color.TR3}{C}{G}{inp}{C}{color.TR2}{C}")
             else:
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Could not find specified target: {}".format(inp))
+                print(
+                    f"{R} [-] "
+                    + "\033[0m"
+                    + color.UNDERLINE
+                    + "\033[1m"
+                    + f"Could not find specified target: {inp}"
+                )
 
     def do_viclist(self, inp):
         for i in varis.targets:
@@ -498,14 +601,26 @@ class TIDcon(Cmd):
     def do_set(self, inp):
         listed = inp.split(" ")
         if len(listed) != 2:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Entry must contain exactly 1 space.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Entry must contain exactly 1 space."
+            )
+        elif varis.module == "":
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No module loaded."
+            )
+
         else:
             param = listed[0]
             value = listed[1]
-            if varis.module != "":
-                select.set(varis.module, param, value)
-            else:
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No module loaded.")
+            select.set(varis.module, param, value)
 
     def help_set(self):
         print("""
@@ -523,7 +638,13 @@ class TIDcon(Cmd):
 
     def do_info(self, inp, gui=False):
         if varis.module == "":
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No module loaded.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No module loaded."
+            )
         else:
             info = select.information(varis.module)
             if gui:
@@ -539,7 +660,13 @@ class TIDcon(Cmd):
 
     def do_opts(self, inp):
         if varis.module == "":
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No module loaded.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "No module loaded."
+            )
         else:
             select.opts(varis.module)
 
@@ -565,11 +692,23 @@ class TIDcon(Cmd):
                 imp.import_module(impmod)
             if success:
                 varis.module = impmod
-                self.prompt = '{} tid2({}{}{}) > {}'.format(C, R, varis.module.split(".")[-1], C, color.END)
+                self.prompt = f'{C} tid2({R}{varis.module.split(".")[-1]}{C}) > {color.END}'
         except ImportError:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Not a valid module: {}".format(inp))
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + f"Not a valid module: {inp}"
+            )
         except ValueError:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Please enter a module.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Please enter a module."
+            )
 
     def help_load(self):
         print("""
@@ -588,10 +727,22 @@ class TIDcon(Cmd):
         try:
             p = int(inp.strip())
             assert p > 0
-            print(O+" [+] Processes:"+C+color.TR3+C+G+"{} > {}".format(varis.processes, p)+C+color.TR2+C)
+            print(
+                f"{O} [+] Processes:{C}{color.TR3}{C}{G}"
+                + f"{varis.processes} > {p}"
+                + C
+                + color.TR2
+                + C
+            )
             varis.processes = p
         except (ValueError, AssertionError):
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Not a valid (positive) integer: {}".format(inp))
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + f"Not a valid (positive) integer: {inp}"
+            )
 
     def help_processes(self):
         print("""
@@ -606,7 +757,7 @@ class TIDcon(Cmd):
 
     def do_leave(self, inp):
         varis.module = ""
-        self.prompt = '{} tid2 > {}'.format(C, color.END)
+        self.prompt = f'{C} tid2 > {color.END}'
 
     def help_leave(self):
         print("""
@@ -634,35 +785,44 @@ class TIDcon(Cmd):
             onmain = onver.split("-")[0]
             onrev = onver.split("-")[1]
             onlist = onmain.split(".")
-            uptodate = True
-            matches = True
-            for i in range(0, len(locallist)):
-                if int(locallist[i]) < int(onlist[i]):
-                    uptodate = False
-            for i in range(0, len(locallist)):
-                if int(locallist[i]) != int(onlist[i]):
-                    matches = False
-            if uptodate and matches:
-                if int(localrev) < int(onrev):
-                    uptodate = False
+            uptodate = all(
+                int(locallist[i]) >= int(onlist[i])
+                for i in range(0, len(locallist))
+            )
+            matches = all(
+                int(locallist[i]) == int(onlist[i])
+                for i in range(0, len(locallist))
+            )
+            if uptodate and matches and int(localrev) < int(onrev):
+                uptodate = False
             if not uptodate:
-                print(" [!] An update is available! Last version is: {}, installed version is: {}.".format(onver, localver))
+                print(
+                    f" [!] An update is available! Last version is: {onver}, installed version is: {localver}."
+                )
                 if not gui:
                     d = input(" [?] Do you want to update the framework? (enter if not) :> ")
                     if d != "":
                         path = os.path.dirname(os.path.realpath(__file__))
                         if "/home/" in path:
                             user = path.split("/")[2]
-                            os.system("git stash; sudo -u {} git pull".format(user))
+                            os.system(f"git stash; sudo -u {user} git pull")
                         else:
                             os.system("git stash ; git pull ; cp tmp/TIDoS /bin/TIDoS ; chmod +x /bin/TIDoS")
-                        print(G+" [+] Update installed successfully."+C+color.TR2+C)
+                        print(f"{G} [+] Update installed successfully.{C}{color.TR2}{C}")
             else:
-                print(" [+] You are running the latest version of TIDoS-framework ({}).".format(localver))
+                print(
+                    f" [+] You are running the latest version of TIDoS-framework ({localver})."
+                )
             if gui:
                 return (uptodate, localver)
         except Exception:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "An error occurred fetching...")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "An error occurred fetching..."
+            )
 
     def help_fetch(self):
         print("""
@@ -683,25 +843,47 @@ def main():
     #currently, only Linux is supported - TODO support other OSes as well
     if str(platform.system()) != "Linux":
         sys.exit(
-            R + " [!] " + color.UNDERLINE + "\033[1m" + "You are not using a Linux Based OS! Linux is a must-have for "
-                                                        "this script!" + color.END)
+            (
+                (
+                    f"{R} [!] {color.UNDERLINE}"
+                    + "\033[1m"
+                    + "You are not using a Linux Based OS! Linux is a must-have for "
+                    "this script!"
+                )
+                + color.END
+            )
+        )
     #some modules require root permissions to work
-    if not os.geteuid() == 0:
-        sys.exit(R + " [!] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Must be run as root." + B + " :)" + color.END)
+    if os.geteuid() != 0:
+        sys.exit(
+            f"{R} [!] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Must be run as root."
+            + B
+            + " :)"
+            + color.END
+        )
     #prompt the user with the terms&conditions if not already accepted
     if 'no' in open('core/doc/choice').read():
         prnt.disclaimer()
 
-        a1 = input(B + ' [?] Do you agree to these terms and conditions? :> ' + C)
+        a1 = input(f'{B} [?] Do you agree to these terms and conditions? :> {C}')
         if a1.lower().startswith('y'):
             print(B + ' [+] That\'s awesome! Move on...')
             time.sleep(3)
-            FILE = open("core/doc/choice", "w")
-            FILE.write('yes')
-            FILE.close()
-
+            with open("core/doc/choice", "w") as FILE:
+                FILE.write('yes')
         else:
-            print(R + ' [!] ' + "\033[0m" + color.UNDERLINE + "\033[1m" + 'You have to agree!' + color.END)
+            print(
+                f'{R} [!] '
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + 'You have to agree!'
+                + color.END
+            )
             time.sleep(1)
             sys.exit(0)
 
@@ -728,7 +910,7 @@ def main():
         if not opt["session"]:
             s.do_vicadd(args.victim)
         else:
-            s.do_sessions("load {}".format(args.victim))
+            s.do_sessions(f"load {args.victim}")
         s.do_load(args.load)
         if opt["tor"]:
             s.do_tor("on")
@@ -766,7 +948,7 @@ def main():
     elif opt["fetch"]:
         s = TIDcon()
         s.do_fetch("")
-    elif opt["victim"] and not opt["load"] or opt["load"] and not opt["victim"]:
+    elif opt["victim"] or opt["load"]:
         parser.error("'-v' and '-l' are required for CLI attack.")
     else:
         if not opt["quiet"]:
@@ -775,7 +957,7 @@ def main():
             #prnt.bannerbelownew()
             prnt.upinfo()
         TIDcon().cmdloop()
-        print(R + "[TIDoS] " + "\033[0m" + color.END + "Alvida, my chosen")
+        print(f"{R}[TIDoS] " + "\033[0m" + color.END + "Alvida, my chosen")
         #print(R + "[TIDoS] "+color.END+RC+prnt.randomsg()+color.END)
 
 if __name__ == '__main__':

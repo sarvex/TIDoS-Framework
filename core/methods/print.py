@@ -58,22 +58,22 @@ ____, __{}
      ;
      '   
     """.format(color.END, R, color.END, RB, color.END, R, C, cursive, swappy, color.END)
-    
+
     action = 0
     #while action < 2:
     while thread.is_alive():
         for i, char in enumerate(loading):
             if i == 0:
-                swappy = "%s%s%s%s" % (red_bold, char.swapcase(), reset, loading[1:])
-                #print("%s%s%s%s" % (red_bold, char.swapcase(), reset, loading[1:]))
+                swappy = f"{red_bold}{char.swapcase()}{reset}{loading[1:]}"
+                            #print("%s%s%s%s" % (red_bold, char.swapcase(), reset, loading[1:]))
             elif i == 1:
                 old_loading = loading[0].swapcase()
-                swappy = "%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[2:])
-                #print("%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[2:]))
+                swappy = f"{old_loading}{red_bold}{char.swapcase()}{reset}{loading[2:]}"
+                            #print("%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[2:]))
             elif i == i:
-                old_loading = loading[-0:i]
-                swappy = "%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[i + 1:])
-                #print("%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[i + 1:]))
+                old_loading = loading[:i]
+                swappy = f"{old_loading}{red_bold}{char.swapcase()}{reset}{loading[i + 1:]}"
+                            #print("%s%s%s%s%s" % (old_loading, red_bold, char.swapcase(), reset, loading[i + 1:]))
             display = """
 
 
@@ -400,9 +400,8 @@ def banner():
         print(sp00k70b3r)
     elif currentDay == 1 and currentMonth == 4:
         if 'no' in open('core/doc/mystery').read():
-            FILE = open("core/doc/mystery", "w")
-            FILE.write('yes')
-            FILE.close()
+            with open("core/doc/mystery", "w") as FILE:
+                FILE.write('yes')
             f00l()
         else:
             print(random.choice(bannerlist))
@@ -418,8 +417,10 @@ def randomsg():
 def bannerbelownew():
     #print("   {}tidos{}{}{}{}{}{}{}{}{}{}".format(color.END, color.END, color.TR6, color.END, RB, vars.e_version.split("#")[0],C,color.TR3,G,vars.e_version.split("#")[1],color.TR2) + C)
     #print("   {}tidconsole{}{}{}{}{}{}{}{}{}{}".format(color.END, color.END, color.TR6, color.END, RB, vars.version,C,color.TR3,G,vars.e_version.split("#")[1],color.TR2) + C)
-    print("   {}tidconsole{}{}{}{}{}{}{}{}{}{}".format(color.END, color.END, color.TR6, color.END, RB, vars.version,C,color.TR3,G,vars.count,color.TR2) + C)
-    print("  {}{}{}".format(RC, randomsg(), color.END))
+    print(
+        f"   {color.END}tidconsole{color.END}{color.TR6}{color.END}{RB}{vars.version}{C}{color.TR3}{G}{vars.count}{color.TR2}{C}"
+    )
+    print(f"  {RC}{randomsg()}{color.END}")
 
 
 def info():
@@ -571,7 +572,7 @@ def cprint(text1, text2):
     print(RC + text1 + color.END + RB + text2 + color.END)
 
 
-def progressbar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+def progressbar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -586,7 +587,7 @@ def progressbar (iteration, total, prefix = '', suffix = '', decimals = 1, lengt
     """
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
-    bar = fill * filledLength + "{}༛{}".format(RD, color.END) * (length - filledLength)
+    bar = fill * filledLength + f"{RD}༛{color.END}" * (length - filledLength)
     #print('\r%s [%s] %s%% %s' % (prefix, bar, percent, suffix), end = printEnd)
     print('\r%s ---->%s>---- %s%% %s' % (prefix, bar, C+percent+color.END, suffix), end = printEnd)
     # Print New Line on Complete
@@ -614,47 +615,57 @@ def summary(module, msg):
     print(display)
 
 def loadstyle2():
+    #base = "TIDoS {}".format(vars.r_version)
+    base = "vailyn"
     for i in range(0, 31):
         rnd = rflt(0.08, 0.15)
         time.sleep(rnd) #0.055
-        #base = "TIDoS {}".format(vars.r_version)
-        base = "vailyn"
+        splitted = re.findall(".", base)
+        for j in range(0, len(splitted)):
+            #if j%4 == 0:
+            if j == i%len(splitted):
+                splitted[j] = splitted[j].swapcase()
+        disp = "".join(splitted)
         if i%4 == 0:
-            splitted = re.findall(".", base)
-            for j in range(0, len(splitted)):
-                #if j%4 == 0:
-                if j == i%len(splitted):
-                    splitted[j] = splitted[j].swapcase()
-            disp = "".join(c for c in splitted)
             #progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix=" {} \\".format(disp))
-            progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix="\\", prefix=disp+" ୰")
+            progressbar(
+                i,
+                30,
+                fill=f"{color.END}༛{color.END}",
+                length=20,
+                suffix="\\",
+                prefix=f"{disp} ୰",
+            )
         elif i%4 == 1:
-            splitted = re.findall(".", base)
-            for j in range(0, len(splitted)):
-                #if j%4 == 1:
-                if j == i%len(splitted):
-                    splitted[j] = splitted[j].swapcase()
-            disp = "".join(c for c in splitted)
             #progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix=" {} |".format(disp))
-            progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix="|", prefix=disp+" ୰")
+            progressbar(
+                i,
+                30,
+                fill=f"{color.END}༛{color.END}",
+                length=20,
+                suffix="|",
+                prefix=f"{disp} ୰",
+            )
         elif i%4 == 2:
-            splitted = re.findall(".", base)
-            for j in range(0, len(splitted)):
-                #if j%4 == 2:
-                if j == i%len(splitted):
-                    splitted[j] = splitted[j].swapcase()
-            disp = "".join(c for c in splitted)
             #progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix=" {} /".format(disp))
-            progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix="/", prefix=disp+" ୰")
+            progressbar(
+                i,
+                30,
+                fill=f"{color.END}༛{color.END}",
+                length=20,
+                suffix="/",
+                prefix=f"{disp} ୰",
+            )
         else:
-            splitted = re.findall(".", base)
-            for j in range(0, len(splitted)):
-                #if j%4 == 3:
-                if j == i%len(splitted):
-                    splitted[j] = splitted[j].swapcase()
-            disp = "".join(c for c in splitted)
             #progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix=" {} -".format(disp))
-            progressbar(i, 30, fill="{}༛{}".format(color.END, color.END), length=20, suffix="-", prefix=disp+" ୰")
+            progressbar(
+                i,
+                30,
+                fill=f"{color.END}༛{color.END}",
+                length=20,
+                suffix="-",
+                prefix=f"{disp} ୰",
+            )
     time.sleep(0.75)
     os.system("clear")
 

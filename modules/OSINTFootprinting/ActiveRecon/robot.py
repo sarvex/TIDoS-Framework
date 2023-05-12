@@ -38,32 +38,32 @@ def robot(web):
     from core.methods.print import posintact
     posintact("robots checker") 
 
-    url = web + '/robots.txt'
+    url = f'{web}/robots.txt'
     print(' [!] Testing for robots.txt...\n')
     try:
         resp = requests.get(url).text
-        m = str(resp)
-        print(G+' [+] Robots.txt found!'+C+color.TR2+C)
-        print(GR+' [*] Displaying contents of robots.txt...')
+        m = resp
+        print(f'{G} [+] Robots.txt found!{C}{color.TR2}{C}')
+        print(f'{GR} [*] Displaying contents of robots.txt...')
         print(color.END+m+C)
         data = ">> robots.txt:\n" + m
         save_data(database, module, lvl1, lvl2, lvl3, name, data)
     except Exception:
-        print(R+' [-] Robots.txt not found')
+        print(f'{R} [-] Robots.txt not found')
         save_data(database, module, lvl1, lvl2, lvl3, name, "robots.txt not found.")
 
     print(' [!] Testing for sitemap.xml...\n')
-    url0 = web + '/sitemap.xml'
+    url0 = f'{web}/sitemap.xml'
     try:
         resp = requests.get(url0).text
-        m = str(resp)
-        print(G+' [+] Sitemap.xml found!'+C+color.TR2+C)
-        print(GR+' [*] Displaying contents of sitemap.xml')
+        m = resp
+        print(f'{G} [+] Sitemap.xml found!{C}{color.TR2}{C}')
+        print(f'{GR} [*] Displaying contents of sitemap.xml')
         print(color.END+m+C)
         data = ">> sitemap.xml:\n" + m
         save_data(database, module, lvl1, lvl2, lvl3, name, data)
     except Exception:
-        print(R+' [-] Sitemap.xml not found')
+        print(f'{R} [-] Sitemap.xml not found')
         save_data(database, module, lvl1, lvl2, lvl3, name, "sitemap.xml not found.")
 
 def attack(web):

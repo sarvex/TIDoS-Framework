@@ -35,5 +35,4 @@ class Target:
         self.fullurl = ''
 
     def __iter__(self):
-        for attr, value in self.__dict__.items():
-            yield attr, value 
+        yield from self.__dict__.items() 

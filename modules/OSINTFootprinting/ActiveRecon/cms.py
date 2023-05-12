@@ -56,48 +56,66 @@ def getcmslook(web, name):
     global found
     global dtect
     web = web.split('//')[1]
-    print(GR+' [*] Passive Fingerprinting CMS...')
+    print(f'{GR} [*] Passive Fingerprinting CMS...')
     time.sleep(1)
-    print(C+' [!] Setting priority to False...')
+    print(f'{C} [!] Setting priority to False...')
     dtect = False
-    print(GR+' [*] Importing token...')
+    print(f'{GR} [*] Importing token...')
     try:
         from files.API_KEYS import WHATCMS_ACCESS_TOKEN
-        print(O+' [+] Token detected :'+C+color.TR3+C+G+WHATCMS_ACCESS_TOKEN+C+color.TR2+C)
-        request = requests.get('https://whatcms.org/APIEndpoint/Detect?url=' + web + '&key=' + WHATCMS_ACCESS_TOKEN, verify=False)
+        print(
+            f'{O} [+] Token detected :{C}{color.TR3}{C}{G}{WHATCMS_ACCESS_TOKEN}{C}{color.TR2}{C}'
+        )
+        request = requests.get(
+            f'https://whatcms.org/APIEndpoint/Detect?url={web}&key={WHATCMS_ACCESS_TOKEN}',
+            verify=False,
+        )
         response = json.loads(request.text)
-        status = response['result']['code']
         if 'retry' in response:
-            print(R+' [-] Outbound Query Exception!')
+            print(f'{R} [-] Outbound Query Exception!')
         else:
+            status = response['result']['code']
             if status == 200:
                 dtect = True
-                print(O+' [+] CMS Detected:' +C+color.TR3+C+G+ response['result']['name']+C+color.TR2+C+'\n')
+                print(
+                    f'{O} [+] CMS Detected:{C}{color.TR3}{C}{G}'
+                    + response['result']['name']
+                    + C
+                    + color.TR2
+                    + C
+                    + '\n'
+                )
                 save_data(database, module, lvl1, lvl2, lvl3, name, response['result']['name'])
             else:
                 dtect = False
     except ImportError:
-        print(R+' [-] No API Token detected. Skipping first module...')
+        print(f'{R} [-] No API Token detected. Skipping first module...')
         time.sleep(0.4)
 
 def cmsenum(web, name):
 
     print(GR+' [*] Active Fingerprinting CMS...\n')
     resp = builtwith.parse(web)
-    print(C+' [*] Parsing raw-data...')
+    print(f'{C} [*] Parsing raw-data...')
     time.sleep(0.7)
     res = json.dumps(resp)
     r = json.loads(res)
     try:
         if "cms" in r:
-            print(O+' [+] CMS Detected :'+C+color.TR3+C+G+'%s' % (r['cms'])+C+color.TR2+C)
+            print(
+                f'{O} [+] CMS Detected :{C}{color.TR3}{C}{G}'
+                + f"{r['cms']}"
+                + C
+                + color.TR2
+                + C
+            )
             dtect = True
             save_data(database, module, lvl1, lvl2, lvl3, name, str(r['cms']))
             time.sleep(0.7)
 
     except Exception as e:
-        print(R+' [-] Error while CMS Enumeration...')
-        print(R+' [-] Exception : '+str(e))
+        print(f'{R} [-] Error while CMS Enumeration...')
+        print(f'{R} [-] Exception : {str(e)}')
 
 def cms(web):
     global lvl1, lvl2, lvl3, module
@@ -110,17 +128,17 @@ def cms(web):
     #print(R+'    C M S   D E T E C T O R')
     #print(R+'   =========================\n')
     from core.methods.print import posintact
-    posintact("cms detector") 
+    posintact("cms detector")
     time.sleep(0.4)
-    print(GR+' [*] Parsing the web URL... ')
+    print(f'{GR} [*] Parsing the web URL... ')
     time.sleep(0.4)
-    print(C+' [!] Initiating Content Management System Detection!')
+    print(f'{C} [!] Initiating Content Management System Detection!')
     getcmslook(web, name)
     cmsenum(web, name)
     if dtect == False:
-        print(R+" [-] "+O+web+R + " doesn't seem to use a CMS")
+        print(f"{R} [-] {O}{web}{R} doesn't seem to use a CMS")
         save_data(database, module, lvl1, lvl2, lvl3, name, "No CMS detected.")
-    print(G+' [+] CMS Detection Module Completed!'+C+color.TR2+C)
+    print(f'{G} [+] CMS Detection Module Completed!{C}{color.TR2}{C}')
 
 def attack(web):
     web = web.fullurl

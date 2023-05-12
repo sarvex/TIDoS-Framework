@@ -34,6 +34,22 @@ def attack(web):
                 mod = imp.import_module(module)
                 mod.attack(web)
         except ImportError:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Failed to import module: {}".format(module))
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + f"Failed to import module: {module}"
+            )
         except Exception as e:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Module {} failed on target {}:".format(mod, web.fullurl)+"\033[0m"+ color.CURSIVE +"\n{}".format(e) + C)
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + f"Module {mod} failed on target {web.fullurl}:"
+                + "\033[0m"
+                + color.CURSIVE
+                + f"\n{e}"
+                + C
+            )

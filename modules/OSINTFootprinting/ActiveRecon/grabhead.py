@@ -34,7 +34,7 @@ def grabhead(web):
     #print(R+'      G R A B   H T T P   H E A D E R S')
     #print(R+'     ===================================\n')
     from core.methods.print import posintact
-    posintact("grab http headers") 
+    posintact("grab http headers")
     print(GR + color.BOLD + ' [*] Grabbing HTTP Headers...')
     time.sleep(0.4)
     web = web.rstrip()
@@ -44,11 +44,11 @@ def grabhead(web):
         print('')
         for m in header:
             n = m.split(':')
-            print('  '+C+n[0]+': '+C+n[1])
+            print(f'  {C}{n[0]}: {C}{n[1]}')
         print('')
         save_data(database, module, lvl1, lvl2, lvl3, name, headerwhole)
     except urllib.error.HTTPError as e:
-        print(R+' [-] '+e.__str__())
+        print(f'{R} [-] {e.__str__()}')
 
 def attack(web):
     web = web.fullurl

@@ -28,6 +28,5 @@ def listsplit(l, n):
 def file2list(path):
     lines = []
     with open(path, "r") as f:
-        for line in f:
-            lines.append(line.strip("\n"))
+        lines.extend(line.strip("\n") for line in f)
     return lines

@@ -48,9 +48,7 @@ def check_portv(host, port, result = 1):
         sock.close()
 
     except Exception as e:
-        print(''+R+' [!] Exception detected at port %s !' % port)
-        pass
-
+        print(f'{R}' + f' [!] Exception detected at port {port} !')
     return result
 
 def portloop(portlist, host):
@@ -60,10 +58,10 @@ def portloop(portlist, host):
         sys.stdout.flush()
         response = check_portv(host, p)
         if response == 0:
-            print(''+O+' [!] Port ' + str(p)+color.TR3 +G+ ' detected Open !'+color.TR2 + C)
+            print(f'{O} [!] Port {str(p)}{color.TR3}{G} detected Open !{color.TR2}{C}')
             open.append(p)
         else:
-            print(''+R+' [!] Port ' +O+ str(p) +R+ ' detected Closed !')
+            print(f'{R} [!] Port {O}{str(p)}{R} detected Closed !')
             closed.append(p)
     return (open, closed)
 

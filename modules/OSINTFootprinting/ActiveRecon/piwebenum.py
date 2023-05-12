@@ -36,20 +36,20 @@ def piwebenum(web):
     #print(R+'    P I N G / N P I N G   E N U M E R A T I O N')
     #print(R+'   =============================================\n')
     from core.methods.print import posintact
-    posintact("(n)ping enumeration") 
-    print(GR + ' [!] Pinging website...')
+    posintact("(n)ping enumeration")
+    print(f'{GR} [!] Pinging website...')
     time.sleep(0.5)
-    print(C+' [*] Using adaptative ping and debug mode with count 5...')
+    print(f'{C} [*] Using adaptative ping and debug mode with count 5...')
     time.sleep(0.4)
     print(GR+' [!] Press Ctrl+C to stop\n'+color.END)
-    os.system('ping -D -c 5 '+ web)
+    os.system(f'ping -D -c 5 {web}')
     print('')
     time.sleep(0.6)
-    print(C+' [*] Trying NPing (NMap Ping)...')
+    print(f'{C} [*] Trying NPing (NMap Ping)...')
     print(C+" [~] Result: \n")
     print('')
-    text = requests.get('http://api.hackertarget.com/nping/?q=' + web).text
-    nping = str(text)
+    text = requests.get(f'http://api.hackertarget.com/nping/?q={web}').text
+    nping = text
     print(color.END+ nping +C+'\n')
     save_data(database, module, lvl1, lvl2, lvl3, name, nping)
 

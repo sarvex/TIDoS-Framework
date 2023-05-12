@@ -150,7 +150,7 @@ class UserAgentBase(_opener.OpenerDirector):
         want = {}
         for scheme in schemes:
             if scheme.startswith("_"):
-                raise ValueError("not a scheme '%s'" % scheme)
+                raise ValueError(f"not a scheme '{scheme}'")
             if scheme not in self.handler_classes:
                 raise ValueError("unknown scheme '%s'")
             want[scheme] = None

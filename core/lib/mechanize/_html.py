@@ -36,8 +36,7 @@ class LazyEncodingPats(object):
         if pats is None:
             pats = tuple(compile_pats(binary))
             setattr(self, attr, pats)
-        for pat in pats:
-            yield pat
+        yield from pats
 
 
 lazy_encoding_pats = LazyEncodingPats()
@@ -59,8 +58,7 @@ def elem_text(elem):
     if elem.text:
         yield elem.text
     for child in elem:
-        for text in elem_text(child):
-            yield text
+        yield from elem_text(child)
         if child.tail:
             yield child.tail
 
@@ -73,15 +71,13 @@ def iterlinks(root, base_url):
         q = tag.tag.lower()
         attr = link_tags.get(q)
         if attr is not None:
-            val = tag.get(attr)
-            if val:
+            if val := tag.get(attr):
                 url = clean_url(val)
                 yield Link(base_url, url,
                            compress_whitespace(u''.join(elem_text(tag))), q,
                            tag.items())
         elif q == 'base':
-            href = tag.get('href')
-            if href:
+            if href := tag.get('href'):
                 base_url = href
 
 
@@ -93,17 +89,18 @@ def get_encoding_from_response(response, verify=True):
     # HTTPEquivProcessor may be in use, so both HTTP and HTTP-EQUIV
     # headers may be in the response.  HTTP-EQUIV headers come last,
     # so try in order from first to last.
-    if response:
-        for ct in response.info().getheaders("content-type"):
-            for k, v in split_header_words([ct])[0]:
-                if k == "charset":
-                    if not verify:
-                        return v
-                    try:
-                        codecs.lookup(v)
-                        return v
-                    except LookupError:
-                        continue
+    if not response:
+        return
+    for ct in response.info().getheaders("content-type"):
+        for k, v in split_header_words([ct])[0]:
+            if k == "charset":
+                if not verify:
+                    return v
+                try:
+                    codecs.lookup(v)
+                    return v
+                except LookupError:
+                    continue
 
 
 class EncodingFinder:
@@ -199,8 +196,7 @@ def content_parser(data,
 
 def get_title(root):
     for title in root.iter('title'):
-        text = compress_whitespace(title.text)
-        if text:
+        if text := compress_whitespace(title.text):
             return text
 
 

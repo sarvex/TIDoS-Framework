@@ -26,7 +26,10 @@ class VaileParser(argparse.ArgumentParser):
     def error(self, message):
         banner()
         self.print_usage(sys.stderr)
-        self.exit(2, '{}[-]\033[0m\033[1m Invalid/missing params\033[0m\n{}[HINT]\033[0m\033[0m {}\n'.format(R, R, message))
+        self.exit(
+            2,
+            f'{R}[-]\033[0m\033[1m Invalid/missing params\033[0m\n{R}[HINT]\033[0m\033[0m {message}\n',
+        )
     def print_help(self):
         print('''{}Vsynta.:{} {}tidos{} [-v VIC] [-p] [-a CA] [-s] 
           [-f] [-l M] [-h] [-c VAL]
@@ -45,8 +48,13 @@ class VaileParser(argparse.ArgumentParser):
 class VaileFormatter(argparse.RawDescriptionHelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         if prefix is None:
-            prefix = RD + 'Vsynta ' + color.END
-            return super(VaileFormatter, self).add_usage("{}tidos{} [-v VIC] [-p] [-a CA] [-s]\n          [-f] [-l M] [-h] [-c VAL]\n        [--app] [-q]".format(RB,color.END), actions, groups, prefix)
+            prefix = f'{RD}Vsynta {color.END}'
+            return super(VaileFormatter, self).add_usage(
+                f"{RB}tidos{color.END} [-v VIC] [-p] [-a CA] [-s]\n          [-f] [-l M] [-h] [-c VAL]\n        [--app] [-q]",
+                actions,
+                groups,
+                prefix,
+            )
 
 def build_parser():
     p = VaileParser(formatter_class=VaileFormatter, add_help=False)

@@ -39,14 +39,8 @@ def gps(exif):
         Wsec = exif['GPSInfo'][4][2][0] / float(exif['GPSInfo'][4][2][1])
         Wmin = exif['GPSInfo'][4][1][0] / float(exif['GPSInfo'][4][1][1])
         Wdeg = exif['GPSInfo'][4][0][0] / float(exif['GPSInfo'][4][0][1])
-        if exif['GPSInfo'][1] == 'N':
-            Nmult = 1
-        else:
-            Nmult = -1
-        if exif['GPSInfo'][1] == 'E':
-            Wmult = 1
-        else:
-            Wmult = -1
+        Nmult = 1 if exif['GPSInfo'][1] == 'N' else -1
+        Wmult = 1 if exif['GPSInfo'][1] == 'E' else -1
         Lat = Nmult * (Ndeg + (Nmin + Nsec/60.0)/60.0)
         Lng = Wmult * (Wdeg + (Wmin + Wsec/60.0)/60.0)
         exif['GPSInfo'] = {"Lat" : Lat, "Lng" : Lng}
@@ -69,32 +63,32 @@ def exif3meta(image_path):
 
     print(GR+'\n [*] Reading METADATA info...')
     for tag, value in Image.open(image_path)._getexif().iteritems():
-        print(O+' [+] '+str(TAGS.get(tag))+' : '+C+str(value))
+        print(f'{O} [+] {str(TAGS.get(tag))} : {C}{str(value)}')
 
 def imgext():
 
     #print(R+'\n    =============================')
     print(R+'\n     I M A G E   A N A L Y S I S')
     print(R+'    ---<>----<>----<>----<>----<>\n')
-                 
-    name = input(O+' [§] Enter path to image file :> ')
+
+    name = input(f'{O} [§] Enter path to image file :> ')
 
     if os.path.exists(name):
-        print(GR+" [+] Metadata for file: %s " %(name))
+        print(f"{GR} [+] Metadata for file: {name} ")
         try:
             print(O+' [!] Extracting METADATA info...\n')
             time.sleep(0.7)
             exifData = {}
             exif = exif1meta(name)
             for metadata in exif:
-                print(G+" [+] "+str(metadata)+O+ " - Value :"+C+" %s " %(str(exif[metadata])))
+                print(f"{G} [+] {str(metadata)}{O} - Value :{C}" + f" {str(exif[metadata])} ")
                 time.sleep(0.1)
             exif3meta(name)
 
         except Exception as e:
-            print(R+' [-] Caught Exception : '+str(e))
+            print(f'{R} [-] Caught Exception : {str(e)}')
     else:
-        print(R+' [-] No such file/directory present...')
+        print(f'{R} [-] No such file/directory present...')
     print(G+'\n [+] Forensic Image Analysis Done!\n')
 
 def attack(web):

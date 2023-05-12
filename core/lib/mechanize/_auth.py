@@ -20,10 +20,7 @@ class HTTPProxyPasswordMgr(HTTPPasswordMgr):
 
     def add_password(self, realm, uri, user, passwd):
         # uri could be a single URI or a sequence
-        if uri is None or is_string(uri):
-            uris = [uri]
-        else:
-            uris = uri
+        uris = [uri] if uri is None or is_string(uri) else uri
         passwd_by_domain = self.passwd.setdefault(realm, {})
         for uri in uris:
             for default_port in True, False:

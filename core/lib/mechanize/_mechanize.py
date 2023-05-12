@@ -209,8 +209,11 @@ class Browser(UserAgentBase):
         if not origin_request and not self.request.has_header("Referer"):
             return request
 
-        if (self._handle_referer and original_scheme in ["http", "https"] and
-                not (original_scheme == "https" and scheme != "https")):
+        if (
+            self._handle_referer
+            and original_scheme in ["http", "https"]
+            and (original_scheme != "https" or scheme == "https")
+        ):
             # strip URL fragment (RFC 2616 14.36)
             parts = _rfc3986.urlsplit(self.request.get_full_url())
             parts = parts[:-1] + (None, )
@@ -310,10 +313,9 @@ class Browser(UserAgentBase):
         return response
 
     def __str__(self):
-        text = []
-        text.append("<%s " % self.__class__.__name__)
+        text = [f"<{self.__class__.__name__} "]
         if self._response:
-            text.append("visiting %s" % self._response.geturl())
+            text.append(f"visiting {self._response.geturl()}")
         else:
             text.append("(not visiting a URL)")
         if self.form:
@@ -332,7 +334,7 @@ class Browser(UserAgentBase):
 
     def open_local_file(self, filename):
         path = sanepathname2url(os.path.abspath(filename))
-        url = 'file://' + path
+        url = f'file://{path}'
         return self.open(url)
 
     def set_response(self, response):
@@ -404,9 +406,7 @@ class Browser(UserAgentBase):
             self._response.close()
         self.request, response = self._history.back(n, self._response)
         self.set_response(response)
-        if not response.read_complete:
-            return self.reload()
-        return copy.copy(response)
+        return self.reload() if not response.read_complete else copy.copy(response)
 
     def clear_history(self):
         self._history.clear()
@@ -509,10 +509,7 @@ class Browser(UserAgentBase):
         if not self.viewing_html():
             raise BrowserStateError("not viewing HTML")
         links = self._factory.links()
-        if kwds:
-            return self._filter_links(links, **kwds)
-        else:
-            return links
+        return self._filter_links(links, **kwds) if kwds else links
 
     def forms(self):
         """Return iterable over forms.
@@ -626,9 +623,8 @@ class Browser(UserAgentBase):
         def attr_selector(q):
             if is_string(q):
                 return lambda x: x == q
-            if callable(q):
-                return q
-            return lambda x: q.match(x) is not None
+            return q if callable(q) else (lambda x: q.match(x) is not None)
+
         attrsq = {aname.rstrip('_').replace('_', '-'): attr_selector(v)
                   for aname, v in iteritems(attrs)}
 
@@ -656,16 +652,16 @@ class Browser(UserAgentBase):
             # failure
             description = []
             if name is not None:
-                description.append("name '%s'" % name)
+                description.append(f"name '{name}'")
             if predicate is not None:
-                description.append("predicate %s" % predicate)
+                description.append(f"predicate {predicate}")
             if orig_nr is not None:
                 description.append("nr %d" % orig_nr)
             if attrs:
                 for k, v in iteritems(attrs):
                     description.append('%s = %r' % (k, v))
             description = ", ".join(description)
-            raise FormNotFoundError("no form matching " + description)
+            raise FormNotFoundError(f"no form matching {description}")
 
     def click(self, *args, **kwds):
         """See :meth:`mechanize.HTMLForm.click()` for documentation."""
@@ -694,10 +690,9 @@ class Browser(UserAgentBase):
             raise BrowserStateError("not viewing HTML")
         if not link:
             link = self.find_link(**kwds)
-        else:
-            if kwds:
-                raise ValueError(
-                    "either pass a Link, or keyword arguments, not both")
+        elif kwds:
+            raise ValueError(
+                "either pass a Link, or keyword arguments, not both")
         request = self.request_class(link.absolute_url)
         return self._add_referer_header(request)
 

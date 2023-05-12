@@ -49,10 +49,10 @@ def compress_readable_output(src_file, compress_level=6):
 def read_amt(f, amt):
     ans = b''
     while len(ans) < amt:
-        extra = f.read(amt - len(ans))
-        if not extra:
+        if extra := f.read(amt - len(ans)):
+            ans += extra
+        else:
             raise EOFError('Unexpected end of compressed stream')
-        ans += extra
     return ans
 
 
@@ -79,8 +79,7 @@ class UnzipWrapper:
 
         if not self.__is_fully_read:
             while not self.__decoder.unused_data and (sz < 0 or amt_read < sz):
-                chunk = self.__fp.read(1024)
-                if chunk:
+                if chunk := self.__fp.read(1024):
                     if self.__decoder.unconsumed_tail:
                         chunk = self.__decoder.unconsumed_tail + chunk
                     chunk = self.__decoder.decompress(chunk)
@@ -88,13 +87,13 @@ class UnzipWrapper:
                     amt_read += len(chunk)
                     self.__size += len(chunk)
                     self.__crc = zlib.crc32(chunk, self.__crc)
-                else:
-                    if not self.__decoder.unused_data:
-                        raise ValueError(
-                            'unexpected end of compressed gzip data,'
-                            ' before reading trailer')
+                elif self.__decoder.unused_data:
                     break
 
+                else:
+                    raise ValueError(
+                        'unexpected end of compressed gzip data,'
+                        ' before reading trailer')
             if self.__decoder.unused_data:
                 # End of compressed stream reached
                 tail = self.__decoder.unused_data
@@ -110,7 +109,7 @@ class UnzipWrapper:
                 self.__is_fully_read = True
 
         ans = b''.join(ans)
-        if len(ans) > sz and sz > -1:
+        if len(ans) > sz > -1:
             ans, self.__data = ans[:sz], ans[sz:]
         return ans
 
@@ -118,16 +117,12 @@ class UnzipWrapper:
         # Dont care about making this efficient
         data = self.read()
         idx = data.find(b'\n')
-        if idx > 0:
-            if sz < 0 or idx < sz:
-                line, self.__data = data[:idx + 1], data[idx + 1:]
-            else:
-                line, self.__data = data[:sz], data[sz:]
+        if idx > 0 and (sz < 0 or idx < sz):
+            line, self.__data = data[:idx + 1], data[idx + 1:]
+        elif idx > 0 or sz > -1:
+            line, self.__data = data[:sz], data[sz:]
         else:
-            if sz > -1:
-                line, self.__data = data[:sz], data[sz:]
-            else:
-                line = data
+            line = data
         return line
 
     def close(self):
@@ -137,15 +132,14 @@ class UnzipWrapper:
         return self.__fp.fileno()
 
     def __iter__(self):
-        ans = self.readline()
-        if ans:
+        if ans := self.readline():
             yield ans
 
     def next(self):
-        ans = self.readline()
-        if not ans:
+        if ans := self.readline():
+            return ans
+        else:
             raise StopIteration()
-        return ans
 
 
 def create_gzip_decompressor(zipped_file):
@@ -159,8 +153,7 @@ def create_gzip_decompressor(zipped_file):
     flag = ord(prefix[3:4])
     if flag & 4:  # extra
         extra_amt = read_amt(zipped_file, 2)
-        extra_amt = ord(extra_amt[0]) + 256 * ord(extra_amt[1])
-        if extra_amt:
+        if extra_amt := ord(extra_amt[0]) + 256 * ord(extra_amt[1]):
             read_amt(zipped_file, extra_amt)
     if flag & 8:  # filename
         while read_amt(zipped_file, 1) != b'\0':

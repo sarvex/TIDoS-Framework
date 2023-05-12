@@ -49,10 +49,10 @@ class DmarcRecord(object):
             self._store_tag_data(tag[TAG_NAME], tag[TAG_VALUE])
 
     def is_record_strong(self):
-        record_strong = False
-        if self.policy is not None and (self.policy == "reject" or self.policy == "quarantine"):
-            record_strong = True
-
+        record_strong = self.policy is not None and self.policy in [
+            "reject",
+            "quarantine",
+        ]
         if not record_strong:
             try:
                 record_strong = self.is_org_domain_strong()
@@ -63,7 +63,7 @@ class DmarcRecord(object):
 
     def is_subdomain_policy_strong(self):
         if self.subdomain_policy is not None:
-            return self.subdomain_policy == "reject" or self.subdomain_policy == "quarantine"
+            return self.subdomain_policy in ["reject", "quarantine"]
 
     def is_org_domain_strong(self):
         org_record = self.get_org_record()
@@ -89,13 +89,12 @@ class DmarcRecord(object):
 
     @staticmethod
     def from_dmarc_string(dmarc_string, domain):
-        if dmarc_string is not None:
-            dmarc_record = DmarcRecord(domain)
-            dmarc_record.record = dmarc_string
-            dmarc_record.process_tags(dmarc_string)
-            return dmarc_record
-        else:
+        if dmarc_string is None:
             return DmarcRecord(domain)
+        dmarc_record = DmarcRecord(domain)
+        dmarc_record.record = dmarc_string
+        dmarc_record.process_tags(dmarc_string)
+        return dmarc_record
 
     @staticmethod
     def from_domain(domain):
@@ -121,8 +120,7 @@ def _merge_txt_record_strings(txt_record):
 def _match_dmarc_record(txt_record):
     merged_txt_record = _merge_txt_record_strings(txt_record)
     dmarc_pattern = re.compile('^(v=DMARC.*)')
-    potential_dmarc_match = dmarc_pattern.match(str(merged_txt_record))
-    return potential_dmarc_match
+    return dmarc_pattern.match(str(merged_txt_record))
 
 
 def _find_record_from_answers(txt_records):
@@ -136,7 +134,7 @@ def _find_record_from_answers(txt_records):
 
 def get_dmarc_string_for_domain(domain):
     try:
-        txt_records = Resolver.resolver().query("_dmarc." + domain, query_type="TXT")
+        txt_records = Resolver.resolver().query(f"_dmarc.{domain}", query_type="TXT")
         return _find_record_from_answers(txt_records)
     except IOError:
         # This is returned usually as a NXDOMAIN, which is expected.

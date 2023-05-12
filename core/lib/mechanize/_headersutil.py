@@ -115,24 +115,20 @@ def split_header_words(header_values):
         orig_text = text
         pairs = []
         while text:
-            m = token_re.search(text)
-            if m:
+            if m := token_re.search(text):
                 text = unmatched(m)
                 name = m.group(1)
-                m = quoted_value_re.search(text)
-                if m:  # quoted value
+                if m := quoted_value_re.search(text):
                     text = unmatched(m)
                     value = m.group(1)
                     value = escape_re.sub(r"\1", value)
+                elif m := value_re.search(text):
+                    text = unmatched(m)
+                    value = m.group(1)
+                    value = value.rstrip()
                 else:
-                    m = value_re.search(text)
-                    if m:  # unquoted value
-                        text = unmatched(m)
-                        value = m.group(1)
-                        value = value.rstrip()
-                    else:
-                        # no value, a lone token
-                        value = None
+                    # no value, a lone token
+                    value = None
                 pairs.append((name, value))
             elif text.lstrip().startswith(","):
                 # concatenated headers, as per RFC 2616 section 4.2
@@ -143,9 +139,9 @@ def split_header_words(header_values):
             else:
                 # skip junk
                 non_junk, nr_junk_chars = re.subn(r"^[=\s;]*", "", text)
-                assert nr_junk_chars > 0, (
-                    "split_header_words bug: '%s', '%s', %s" %
-                    (orig_text, text, pairs))
+                assert (
+                    nr_junk_chars > 0
+                ), f"split_header_words bug: '{orig_text}', '{text}', {pairs}"
                 text = non_junk
         if pairs:
             result.append(pairs)
@@ -175,11 +171,8 @@ def join_header_words(lists):
             if v is not None:
                 if not re.search(r"^\w+$", v):
                     v = join_escape_re.sub(r"\\\1", v)  # escape " and \
-                    v = '"%s"' % v
-                if k is None:  # Netscape cookies may have no name
-                    k = v
-                else:
-                    k = "%s=%s" % (k, v)
+                    v = f'"{v}"'
+                k = v if k is None else f"{k}={v}"
             attr.append(k)
         if attr:
             headers.append("; ".join(attr))

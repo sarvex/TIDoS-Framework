@@ -54,13 +54,30 @@ def attack(target):
         j = imp.import_module(vars.module)
         j.attack(target)
     except ImportError:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Invalid module: {}".format(vars.module))
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + f"Invalid module: {vars.module}"
+        )
     except KeyboardInterrupt:
         print("^C")
     except SystemExit:
         pass
     except gaierror:
-        delcred = input(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Socket Error received. This may be caused by credentials. \n" +"\033[0m"+ color.CURSIVE + "Temporarily remove creds from {}?".format(target.fullurl) + C + " (enter for not) :> ")
+        delcred = input(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Socket Error received. This may be caused by credentials. \n"
+            + "\033[0m"
+            + color.CURSIVE
+            + f"Temporarily remove creds from {target.fullurl}?"
+            + C
+            + " (enter for not) :> "
+        )
         if delcred != "":
             newtarget = attackdrop(target)
             try:
@@ -69,10 +86,30 @@ def attack(target):
                 print("^C")
             except Exception as e:
                 mod = vars.module.split(".")[-1]
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Module {} failed on target {}:".format(mod,target.fullurl)+"\033[0m"+ color.CURSIVE +"\n{}".format(e) + C)
+                print(
+                    f"{R} [-] "
+                    + "\033[0m"
+                    + color.UNDERLINE
+                    + "\033[1m"
+                    + f"Module {mod} failed on target {target.fullurl}:"
+                    + "\033[0m"
+                    + color.CURSIVE
+                    + f"\n{e}"
+                    + C
+                )
     except Exception as e:
         mod = vars.module.split(".")[-1]
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Module {} failed on target {}:".format(mod,target.fullurl)+"\033[0m"+ color.CURSIVE +"\n{}".format(e) + C)
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + f"Module {mod} failed on target {target.fullurl}:"
+            + "\033[0m"
+            + color.CURSIVE
+            + f"\n{e}"
+            + C
+        )
 
 
 def set(mod, param, value):
@@ -83,9 +120,21 @@ def set(mod, param, value):
             #print("{} > {}".format(param, value))
             print(O+param+C+color.TR3+C+G+value+C+color.TR2+C)
         except ImportError:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Incorrect module: 'properties' dictionary missing.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Incorrect module: 'properties' dictionary missing."
+            )
     except KeyError:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Module {} has no property {}".format(mod, param))
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + f"Module {mod} has no property {param}"
+        )
 
 
 def display(i, names: list, descriptions: list, values: list):
@@ -123,13 +172,19 @@ def information(mod):
     try:
         j = imp.import_module(vars.module)
         i = j.info
-        print("\n\033[4m{}\033[0m\n".format(vars.module))
+        print(f"\n\033[4m{vars.module}\033[0m\n")
         print(i + "\n\n\033[4mOptions\033[0m\n")
         i = j.properties
         names, descs, vals = display(i, names, descs, vals)
         return (j.info, j.properties)
     except ImportError:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Incorrect module: 'info' string missing.")
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Incorrect module: 'info' string missing."
+        )
 
 
 def opts(mod):
@@ -139,10 +194,16 @@ def opts(mod):
     try:
         j = imp.import_module(vars.module)
         i = j.properties
-        print("\n\033[4m{}\033[0m\n".format(vars.module))
+        print(f"\n\033[4m{vars.module}\033[0m\n")
         names, descs, vals = display(i, names, descs, vals)
     except ImportError:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Incorrect module: 'properties' dictionary missing.")
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Incorrect module: 'properties' dictionary missing."
+        )
 
 
 def mlist(arg,display):

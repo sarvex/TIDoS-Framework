@@ -33,37 +33,36 @@ properties = {}
 
 def subdombrute(web):
     try:
-        print(GR+' [*] Importing wordlist path to be bruteforced... "files/subdomains.lst"')
+        print(
+            f'{GR} [*] Importing wordlist path to be bruteforced... "files/subdomains.lst"'
+        )
         with open('files/fuzz-db/subdomain_paths.lst','r') as lol:
             for path in lol:
                 a = path.replace("\n","")
                 sublist.append(a)
 
     except IOError:
-        print(R+' [-] Wordlist not found!')
+        print(f'{R} [-] Wordlist not found!')
 
     global found
     if 'http://' in web:
         web = web.replace('http://','')
     elif 'https://' in web:
         web = web.replace('https://','')
-    else:
-        pass
-
-    web = 'http://' + web
+    web = f'http://{web}'
 
     tld0 = get_fld(web)
 
     if len(sublist) > 0:
         for m in sublist:
-            furl = str(m) + '.' + str(tld0)
+            furl = f'{str(m)}.{str(tld0)}'
             flist.append(furl)
 
     if flist:
         time.sleep(0.5)
         print(R+'\n      B R U T E F O R C E R')
         print(R+'     ---<>----<>----<---<>--\n')
-        print(GR+' [*] Bruteforcing for possible subdomains...')
+        print(f'{GR} [*] Bruteforcing for possible subdomains...')
         for url in flist:
             if 'http://' in url:
                 url = url.replace('http://','')
@@ -82,21 +81,21 @@ def subdombrute(web):
 def outer(web):
     requests = session()
     global final
-    final = []
     wew = []
     time.sleep(0.4)
     print(R+'\n    A P I   R E T R I E V E R  ')
-    print(R+'   ---<>----<>----<---<>----<>')
+    print(f'{R}   ---<>----<>----<---<>----<>')
 
     print(GR + color.BOLD + ' [!] Retriving subdomains...')
     time.sleep(0.4)
-    print(""+ GR + color.BOLD + " [~] Result: "+ color.END)
-    dom = 'http://' + web
-    text = requests.get('http://api.hackertarget.com/hostsearch/?q=' + dom).text
-    result = str(text)
+    print(f"{GR}{color.BOLD} [~] Result: {color.END}")
+    dom = f'http://{web}'
+    text = requests.get(f'http://api.hackertarget.com/hostsearch/?q={dom}').text
+    result = text
     if 'error' not in result:
         print(color.END + result+C)
         mopo = result.splitlines()
+        final = []
         for mo in mopo:
             ro = mo.split(',')[0]
             final.append(str(ro))
@@ -106,18 +105,20 @@ def report(web, found, final):
     print(R+'\n   R E P O R T')
     print(R+'  ---<>----<>--\n')
     if ((len(found) > 0) or (len(final) > 0)):
-        print(O+' [!] Subdomains found for'+C+color.TR3+C+G+web+C+color.TR2+C)
-        print(C+'  |')
+        print(
+            f'{O} [!] Subdomains found for{C}{color.TR3}{C}{G}{web}{C}{color.TR2}{C}'
+        )
+        print(f'{C}  |')
         for m in found:
-            print(C+ '  +-- ' +GR+ m)
+            print(f'{C}  +-- {GR}{m}')
             total.append(m)
         for p in final:
             if p not in found:
-                print(C+ '  +-- '+GR+p)
+                print(f'{C}  +-- {GR}{p}')
                 total.append(p)
 
     else:
-        print(R+' [-] No Subdomains found for ' + O+web+C)
+        print(f'{R} [-] No Subdomains found for {O}{web}{C}')
     print('\n')
     return total
 
@@ -131,7 +132,7 @@ def subdom(web):
     webb = web
     if "@" in web:
         webb = web.split("@")[1]
-    fileo = 'tmp/logs/'+webb+'-logs/'+str(webb)+'-subdomains.lst'
+    fileo = f'tmp/logs/{webb}-logs/{str(webb)}-subdomains.lst'
     p = open(fileo,'w+')
     p.close
     #print(R+'\n   =====================================')
@@ -140,14 +141,14 @@ def subdom(web):
     from core.methods.print import posintact
     posintact("subdomain gatherer")
     time.sleep(0.7)
-    print(B+' [*] Initializing Step [1]...')
+    print(f'{B} [*] Initializing Step [1]...')
     subdombrute(web)
     print(C+'\n [+] Module [1] Bruteforce Completed!\n')
-    print(B+' [*] Initializing Step [2]...')
+    print(f'{B} [*] Initializing Step [2]...')
     outer(web)
     print(C+' [+] Module [2] API Retriever Completed!\n')
     acc = report(web, found, final)
-    print(C+' [*] Writing found subdomains to DB...')
+    print(f'{C} [*] Writing found subdomains to DB...')
     lvl2 = "subdom"
     module = "ReconANDOSINT"
     lvl1 = "Active Reconnaissance"
@@ -156,8 +157,16 @@ def subdom(web):
         for pwn in acc:
             save_data(database, module, lvl1, lvl2, lvl3, name, str(pwn))
     else:
-        save_data(database, module, lvl1, lvl2, lvl3, name, "No subdomains found for "+web)
-    print(C+' [+] Done!')
+        save_data(
+            database,
+            module,
+            lvl1,
+            lvl2,
+            lvl3,
+            name,
+            f"No subdomains found for {web}",
+        )
+    print(f'{C} [+] Done!')
 
 def attack(web):
     web = web.fullurl

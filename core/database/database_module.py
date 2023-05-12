@@ -24,10 +24,10 @@ import sqlite3
 def save_data(database, module, lvl1, lvl2, lvl3, host, data):
     connection = sqlite3.connect(database)
     cursor = connection.cursor()
-    check_table = 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{}\''.format(module)
+    check_table = f"SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{module}\'"
     cursor.execute(check_table)
     checker = cursor.fetchone()
-    if checker == None:
+    if checker is None:
         create_table = 'CREATE TABLE {} (\
             id INTEGER PRIMARY KEY, \
             lvl1 text not null, \
@@ -37,19 +37,12 @@ def save_data(database, module, lvl1, lvl2, lvl3, host, data):
             data blob);'.format(module)
         cursor.execute(create_table)
         connection.commit()
-    check_entries = 'SELECT number FROM {} WHERE lvl1="{}" AND lvl2="{}" AND lvl3="{}"'.format(module, lvl1, lvl2, lvl3)
+    check_entries = f'SELECT number FROM {module} WHERE lvl1="{lvl1}" AND lvl2="{lvl2}" AND lvl3="{lvl3}"'
     cursor.execute(check_entries)
     printable = cursor.fetchall()
-    ctr = 0
-    high = []
-    while ctr < len(printable):
-        high.append(printable[ctr][0])
-        ctr += 1
-    if high == []:
-        highest = 1
-    else:
-        highest = max(high) + 1
-    insert_into_table = 'INSERT INTO {} (lvl1, lvl2, lvl3, number, data) VALUES (?, ?, ?, ?, ?);'.format(module)
+    high = [printable[ctr][0] for ctr in range(len(printable))]
+    highest = 1 if not high else max(high) + 1
+    insert_into_table = f'INSERT INTO {module} (lvl1, lvl2, lvl3, number, data) VALUES (?, ?, ?, ?, ?);'
     table_entry_parameters = (lvl1, lvl2, lvl3, highest, data)
     cursor.execute(insert_into_table, table_entry_parameters)
     connection.commit()
@@ -60,11 +53,11 @@ def retrieve_data(database, module, lvl1, lvl2, lvl3, num):
     cursor = connection.cursor()
     if lvl3 == "":
         if lvl2 == "":
-            select_from_table = 'SELECT data FROM {} WHERE lvl1="{}" AND lvl2="" AND lvl3="" AND number={}'.format(module, lvl1, num)
+            select_from_table = f'SELECT data FROM {module} WHERE lvl1="{lvl1}" AND lvl2="" AND lvl3="" AND number={num}'
         else:
-            select_from_table = 'SELECT data FROM {} WHERE lvl1="{}" AND lvl2="{}" AND lvl3="" AND number={}'.format(module, lvl1, lvl2, num)
+            select_from_table = f'SELECT data FROM {module} WHERE lvl1="{lvl1}" AND lvl2="{lvl2}" AND lvl3="" AND number={num}'
     else:
-        select_from_table = 'SELECT data FROM {} WHERE lvl1="{}" AND lvl2="{}" AND lvl3="{}" AND number={}'.format(module, lvl1, lvl2, lvl3, num)
+        select_from_table = f'SELECT data FROM {module} WHERE lvl1="{lvl1}" AND lvl2="{lvl2}" AND lvl3="{lvl3}" AND number={num}'
     cursor.execute(select_from_table)
     returned_data = cursor.fetchall()
     connection.close()
@@ -80,7 +73,7 @@ def get_info(database):
     connection = sqlite3.connect(database)
     cursor = connection.cursor()
     for module in modules:
-        check_table = 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{}\''.format(module)
+        check_table = f"SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{module}\'"
         cursor.execute(check_table)
         check = cursor.fetchone()
         if check != None:
@@ -90,24 +83,25 @@ def get_info(database):
             data_saved[module] = {}
         ctr = 1
         while True:
-            cmd = 'SELECT lvl1, lvl2, lvl3, number FROM {} WHERE id={}'.format(module, ctr)
+            cmd = f'SELECT lvl1, lvl2, lvl3, number FROM {module} WHERE id={ctr}'
             cursor.execute(cmd)
             grab_data = cursor.fetchone()
-            if grab_data == None:
+            if grab_data is None:
                 break
-            else:
-                if grab_data[0] not in data_saved[module].keys():
-                    data_saved[module][grab_data[0]] = {}
-                if grab_data[1] != '':
-                    if grab_data[1] not in data_saved[module][grab_data[0]].keys():
-                        data_saved[module][grab_data[0]][grab_data[1]] = {}
-                if grab_data[2] == '':
-                    if grab_data[1] == '':
-                        data_saved[module][grab_data[0]].update( {grab_data[3] : "Data"} )
-                    else:
-                        data_saved[module][grab_data[0]][grab_data[1]].update( {grab_data[3] : "Data"} )
+            if grab_data[0] not in data_saved[module].keys():
+                data_saved[module][grab_data[0]] = {}
+            if (
+                grab_data[1] != ''
+                and grab_data[1] not in data_saved[module][grab_data[0]].keys()
+            ):
+                data_saved[module][grab_data[0]][grab_data[1]] = {}
+            if grab_data[2] == '':
+                if grab_data[1] == '':
+                    data_saved[module][grab_data[0]].update( {grab_data[3] : "Data"} )
                 else:
-                    data_saved[module][grab_data[0]][grab_data[1]][grab_data[2]].update( {grab_data[3] : "Data"} )
+                    data_saved[module][grab_data[0]][grab_data[1]].update( {grab_data[3] : "Data"} )
+            else:
+                data_saved[module][grab_data[0]][grab_data[1]][grab_data[2]].update( {grab_data[3] : "Data"} )
             ctr += 1
     connection.close()
     return data_saved

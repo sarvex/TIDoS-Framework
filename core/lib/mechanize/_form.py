@@ -20,9 +20,7 @@ def label_text(elem):
     ans = []
     if elem.text:
         ans.append(elem.text)
-    for child in elem:
-        if child.tail:
-            ans.append(child.tail)
+    ans.extend(child.tail for child in elem if child.tail)
     return ''.join(ans)
 
 
@@ -30,8 +28,7 @@ def parse_control(elem, parent_of, default_type='text'):
     attrs = dict(elem.attrib)
     label_elem = parent_of(elem, 'label')
     if label_elem is not None:
-        lt = label_text(label_elem)
-        if lt:
+        if lt := label_text(label_elem):
             attrs["__label"] = lt
     ctype = attrs.get('type') or default_type
     return ctype, attrs.get('name'), attrs
@@ -119,10 +116,7 @@ def parse_forms(root, base_url, request_class=None, select_default=False, encodi
         method = form_elem.get('method') or 'GET'
         enctype = form_elem.get(
             'enctype') or "application/x-www-form-urlencoded"
-        if action:
-            action = urljoin(base_url, action)
-        else:
-            action = base_url
+        action = urljoin(base_url, action) if action else base_url
         form = HTMLForm(action, method, enctype, name, form_elem.attrib,
                         request_class, forms, labels, id_to_labels, encoding=encoding)
         forms_map[form_elem] = form

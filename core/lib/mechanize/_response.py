@@ -101,8 +101,7 @@ class seek_wrapper:
         elif name == "read_complete":
             return self.__read_complete_state[0]
 
-        wrapped = self.__dict__.get("wrapped")
-        if wrapped:
+        if wrapped := self.__dict__.get("wrapped"):
             return getattr(wrapped, name)
 
         return getattr(self.__class__, name)
@@ -138,9 +137,7 @@ class seek_wrapper:
                 dest = pos + offset
             end = len_of_seekable(self.__cache)
             to_read = dest - end
-            if to_read < 0:
-                to_read = 0
-
+            to_read = max(to_read, 0)
         if to_read != 0:
             self.__cache.seek(0, 2)
             if to_read is None:
@@ -149,11 +146,10 @@ class seek_wrapper:
                 self.read_complete = True
                 self.__pos = self.__cache.tell() - offset
             else:
-                data = self.wrapped.read(to_read)
-                if not data:
-                    self.read_complete = True
-                else:
+                if data := self.wrapped.read(to_read):
                     self.__cache.write(data)
+                else:
+                    self.read_complete = True
                 # Don't raise an exception even if we've seek()ed past the end
                 # of .wrapped, since fseek() doesn't complain in that case.
                 # Also like fseek(), pretend we have seek()ed past the end,
@@ -251,10 +247,10 @@ class seek_wrapper:
         return self
 
     def __next__(self):
-        line = self.readline()
-        if not line:
+        if line := self.readline():
+            return line
+        else:
             raise StopIteration
-        return line
     next = __next__
 
     xreadlines = __iter__
@@ -378,10 +374,7 @@ class closeable_response:
         self.readline = self.fp.readline
         if hasattr(self.fp, "readlines"):
             self.readlines = self.fp.readlines
-        if hasattr(self.fp, "fileno"):
-            self.fileno = self.fp.fileno
-        else:
-            self.fileno = lambda: None
+        self.fileno = self.fp.fileno if hasattr(self.fp, "fileno") else (lambda: None)
         self.__iter__ = self.fp.__iter__
         self.next = partial(next, self.fp)
 
@@ -462,9 +455,7 @@ def make_headers(headers):
     """
     headers: sequence of (name, value) pairs
     """
-    hdr_text = []
-    for name_value in headers:
-        hdr_text.append("%s: %s" % name_value)
+    hdr_text = ["%s: %s" % name_value for name_value in headers]
     ans = "\n".join(hdr_text)
     if not isinstance(ans, bytes):
         ans = ans.encode('iso-8859-1')
@@ -478,39 +469,37 @@ def make_headers(headers):
 def get_seek_wrapper_class(response):
     # in order to wrap response objects that are also exceptions, we must
     # dynamically subclass the exception :-(((
-    if (
-            isinstance(response, HTTPError) and
-            not isinstance(response, seek_wrapper)
+    if not isinstance(response, HTTPError) or isinstance(
+        response, seek_wrapper
     ):
-        if response.__class__.__module__ == "__builtin__":
-            exc_class_name = response.__class__.__name__
-        else:
-            exc_class_name = "%s.%s" % (response.__class__.__module__,
-                                        response.__class__.__name__)
+        return response_seek_wrapper
 
-        class httperror_seek_wrapper(response_seek_wrapper,
-                                     response.__class__):
-            # this only derives from HTTPError in order to be a subclass --
-            # the HTTPError behaviour comes from delegation
 
-            _exc_class_name = exc_class_name
+    class httperror_seek_wrapper(response_seek_wrapper, response.__class__):
+        exc_class_name = (
+            response.__class__.__name__
+            if response.__class__.__module__ == "__builtin__"
+            else f"{response.__class__.__module__}.{response.__class__.__name__}"
+        )
+        # this only derives from HTTPError in order to be a subclass --
+        # the HTTPError behaviour comes from delegation
 
-            def __init__(self, wrapped):
-                response_seek_wrapper.__init__(self, wrapped)
-                # be compatible with undocumented HTTPError attributes :-(
-                self.hdrs = wrapped.info()
-                self.filename = wrapped.geturl()
+        _exc_class_name = exc_class_name
 
-            def __repr__(self):
-                return ("<%s (%s instance) at %s "
-                        "whose wrapped object = %r>" %
-                        (self.__class__.__name__, self._exc_class_name,
-                         hex(abs(id(self))), self.wrapped))
+        def __init__(self, wrapped):
+            response_seek_wrapper.__init__(self, wrapped)
+            # be compatible with undocumented HTTPError attributes :-(
+            self.hdrs = wrapped.info()
+            self.filename = wrapped.geturl()
 
-        wrapper_class = httperror_seek_wrapper
-    else:
-        wrapper_class = response_seek_wrapper
-    return wrapper_class
+        def __repr__(self):
+            return ("<%s (%s instance) at %s "
+                    "whose wrapped object = %r>" %
+                    (self.__class__.__name__, self._exc_class_name,
+                     hex(abs(id(self))), self.wrapped))
+
+
+    return httperror_seek_wrapper
 
 
 def needs_seek_wrapper(obj):
@@ -572,8 +561,7 @@ def upgrade_response(response):
 
     # may have already-.read() data from .seek() cache
     data = None
-    get_data = getattr(response, "get_data", None)
-    if get_data:
+    if get_data := getattr(response, "get_data", None):
         data = get_data()
 
     response = closeable_response(response.fp,

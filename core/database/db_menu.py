@@ -33,17 +33,17 @@ def build_db_menu(a_list, b_list, selection):
         ctr = 0
         while ctr < len(a_list):
             if selection == "Data":
-                print("{}) Scan {}".format(str(ctr + 1), a_list[ctr]))
+                print(f"{str(ctr + 1)}) Scan {a_list[ctr]}")
             elif b_list != "None":
-                print("{}) {}".format(str(ctr + 1), b_list[ctr]))
+                print(f"{str(ctr + 1)}) {b_list[ctr]}")
             else:
-                print("{}) {}".format(str(ctr + 1), a_list[ctr]))
+                print(f"{str(ctr + 1)}) {a_list[ctr]}")
             ctr += 1
         if selection != "None":
             print(higher_menu_exit_message)
         print(main_exit_message)
         cmd = input(input_cursor)
-        if cmd == "e" or cmd == "E" or cmd == "exit" or cmd == "Exit" or cmd == "EXIT":
+        if cmd in ["e", "E", "exit", "Exit", "EXIT"]:
             print(exit_message)
             sys.exit()
         elif cmd == "0":
@@ -98,9 +98,7 @@ def level_two_menu(choice, menu_data):
 
 def menu(menu_data):
     a_list = list(menu_data.keys())
-    b_list = []
-    for item in a_list:
-        b_list.append(menu_dict[item])
+    b_list = [menu_dict[item] for item in a_list]
     result = build_db_menu(a_list, b_list, "None")
     level_two_menu(result, menu_data)
     

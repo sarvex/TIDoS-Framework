@@ -63,7 +63,7 @@ def isstringlike(x):
     if isinstance(x, (bytes, unicode_type)):
         return True
     try:
-        x + ""
+        f"{x}"
         return True
     except Exception:
         return False
@@ -72,7 +72,7 @@ def isstringlike(x):
 def choose_boundary():
     """Return a string usable as a multipart boundary."""
     # follow IE and firefox
-    nonce = "".join(str(random.randint(0, sys.maxsize - 1)) for i in (0, 1, 2))
+    nonce = "".join(str(random.randint(0, sys.maxsize - 1)) for _ in (0, 1, 2))
     return "-" * 27 + nonce
 
 
@@ -176,9 +176,9 @@ class MimeWriter:
             self._http_hdrs.append((key.capitalize(), value))
         else:
             for i in range(1, len(lines)):
-                lines[i] = "    " + lines[i].strip()
+                lines[i] = f"    {lines[i].strip()}"
             value = "\r\n".join(lines) + "\r\n"
-            line = key.title() + ": " + value
+            line = f"{key.title()}: {value}"
             if prefix:
                 self._headers.insert(0, line)
             else:
@@ -222,10 +222,12 @@ class MimeWriter:
         boundary = boundary or choose_boundary()
         self._boundary.append(boundary)
         return self.startbody(
-            "multipart/" + subtype, [("boundary", boundary)] + plist,
+            f"multipart/{subtype}",
+            [("boundary", boundary)] + plist,
             prefix=prefix,
             add_to_http_hdrs=add_to_http_hdrs,
-            content_type=content_type)
+            content_type=content_type,
+        )
 
     def nextpart(self):
         boundary = self._boundary[-1]
@@ -233,7 +235,7 @@ class MimeWriter:
             self._first_part = False
         else:
             self._fp.write("\r\n")
-        self._fp.write("--" + boundary + "\r\n")
+        self._fp.write(f"--{boundary}" + "\r\n")
         return self.__class__(self._fp)
 
     def lastpart(self):
@@ -361,8 +363,8 @@ class Control:
         # called by HTMLForm
         mw2 = mw.nextpart()
         mw2.addheader(
-            "Content-Disposition", 'form-data; name="%s"' % as_unicode(name),
-            1)
+            "Content-Disposition", f'form-data; name="{as_unicode(name)}"', 1
+        )
         f = mw2.startbody(prefix=0)
         f.write(value)
 
@@ -420,20 +422,21 @@ class ScalarControl(Control):
         if name == "value":
             return self.__dict__["_value"]
         else:
-            raise AttributeError("%s instance has no attribute '%s'" %
-                                 (self.__class__.__name__, name))
+            raise AttributeError(
+                f"{self.__class__.__name__} instance has no attribute '{name}'"
+            )
 
     def __setattr__(self, name, value):
         if name == "value":
             if not isstringlike(value):
                 raise TypeError("must assign a string")
             elif self.readonly:
-                raise AttributeError("control '%s' is readonly" % self.name)
+                raise AttributeError(f"control '{self.name}' is readonly")
             elif self.disabled:
-                raise AttributeError("control '%s' is disabled" % self.name)
+                raise AttributeError(f"control '{self.name}' is disabled")
             self.__dict__["_value"] = value
         elif name in ("name", "type"):
-            raise AttributeError("%s attribute is readonly" % name)
+            raise AttributeError(f"{name} attribute is readonly")
         else:
             self.__dict__[name] = value
 
@@ -446,7 +449,7 @@ class ScalarControl(Control):
 
     def clear(self):
         if self.readonly:
-            raise AttributeError("control '%s' is readonly" % self.name)
+            raise AttributeError(f"control '{self.name}' is readonly")
         self.__dict__["_value"] = None
 
     def __str__(self):
@@ -464,9 +467,9 @@ class ScalarControl(Control):
             infos.append("readonly")
         info = ", ".join(infos)
         if info:
-            info = " (%s)" % info
+            info = f" ({info})"
 
-        return "<%s(%s=%s)%s>" % (self.__class__.__name__, name, value, info)
+        return f"<{self.__class__.__name__}({name}={value}){info}>"
 
 
 # ---------------------------------------------------
@@ -508,12 +511,12 @@ class FileControl(ScalarControl):
 
     def clear(self):
         if self.readonly:
-            raise AttributeError("control '%s' is readonly" % self.name)
+            raise AttributeError(f"control '{self.name}' is readonly")
         self._upload_data = []
 
     def __setattr__(self, name, value):
         if name in ("value", "name", "type"):
-            raise AttributeError("%s attribute is readonly" % name)
+            raise AttributeError(f"{name} attribute is readonly")
         else:
             self.__dict__[name] = value
 
@@ -555,23 +558,23 @@ class FileControl(ScalarControl):
                 if filename is None:
                     filename = ""
             mw2 = mw.nextpart()
-            fn_part = '; filename="%s"' % filename
-            disp = 'form-data; name="%s"%s' % (self.name, fn_part)
+            fn_part = f'; filename="{filename}"'
+            disp = f'form-data; name="{self.name}"{fn_part}'
             mw2.addheader("Content-Disposition", disp, prefix=1)
             fh = mw2.startbody(content_type, prefix=0)
             fh.write(file_object.read())
         else:
             # multiple files
             mw2 = mw.nextpart()
-            disp = 'form-data; name="%s"' % self.name
+            disp = f'form-data; name="{self.name}"'
             mw2.addheader("Content-Disposition", disp, prefix=1)
             fh = mw2.startmultipartbody("mixed", prefix=0)
             for file_object, content_type, filename in self._upload_data:
                 mw3 = mw2.nextpart()
                 if filename is None:
                     filename = ""
-                fn_part = '; filename="%s"' % filename
-                disp = "file%s" % fn_part
+                fn_part = f'; filename="{filename}"'
+                disp = f"file{fn_part}"
                 mw3.addheader("Content-Disposition", disp, prefix=1)
                 fh2 = mw3.startbody(content_type, prefix=0)
                 fh2.write(file_object.read())
@@ -600,9 +603,9 @@ class FileControl(ScalarControl):
             info.append("readonly")
         info = ", ".join(info)
         if info:
-            info = " (%s)" % info
+            info = f" ({info})"
 
-        return "<%s(%s=%s)%s>" % (self.__class__.__name__, name, value, info)
+        return f"<{self.__class__.__name__}({name}={value}){info}>"
 
 
 # ---------------------------------------------------
@@ -631,10 +634,9 @@ class IgnoreControl(ScalarControl):
 
     def __setattr__(self, name, value):
         if name == "value":
-            raise AttributeError("control '%s' is ignored, hence read-only" %
-                                 self.name)
+            raise AttributeError(f"control '{self.name}' is ignored, hence read-only")
         elif name in ("name", "type"):
-            raise AttributeError("%s attribute is readonly" % name)
+            raise AttributeError(f"{name} attribute is readonly")
         else:
             self.__dict__[name] = value
 
@@ -699,9 +701,9 @@ class Item:
     def __str__(self):
         res = self.name
         if self.selected:
-            res = "*" + res
+            res = f"*{res}"
         if self.disabled:
-            res = "(%s)" % res
+            res = f"({res})"
         return res
 
     def __repr__(self):
@@ -709,14 +711,11 @@ class Item:
         # is silly
         attrs = [("name", self.name), ("id", self.id)] + list(
                 iteritems(self.attrs))
-        return "<%s %s>" % (self.__class__.__name__,
-                            " ".join(["%s=%r" % (k, v) for k, v in attrs]))
+        return f'<{self.__class__.__name__} {" ".join(["%s=%r" % (k, v) for k, v in attrs])}>'
 
 
 def disambiguate(items, nr, **kwds):
-    msgs = []
-    for key, value in iteritems(kwds):
-        msgs.append("%s=%r" % (key, value))
+    msgs = ["%s=%r" % (key, value) for key, value in iteritems(kwds)]
     msg = " ".join(msgs)
     if not items:
         raise ItemNotFoundError(msg)
@@ -919,10 +918,7 @@ class ListControl(Control):
 
     def _get(self, name, by_label=False, nr=None, exclude_disabled=False):
         # strictly for use by deprecated methods
-        if by_label:
-            name, label = None, name
-        else:
-            name, label = name, None
+        name, label = (None, name) if by_label else (name, None)
         return self.get(name, label, nr, exclude_disabled)
 
     def toggle(self, name, by_label=False, nr=None):
@@ -960,21 +956,21 @@ class ListControl(Control):
         # bool False: off
         # bool True: on
         if self.disabled:
-            raise AttributeError("control '%s' is disabled" % self.name)
+            raise AttributeError(f"control '{self.name}' is disabled")
         if self.readonly:
-            raise AttributeError("control '%s' is readonly" % self.name)
+            raise AttributeError(f"control '{self.name}' is readonly")
         action == bool(action)
         if item.disabled:
             raise AttributeError("item is disabled")
         if self.multiple:
             item.__dict__["_selected"] = action
+        elif action:
+            for o in self.items:
+                o.__dict__["_selected"] = False
+            item.__dict__["_selected"] = True
+
         else:
-            if not action:
-                item.__dict__["_selected"] = False
-            else:
-                for o in self.items:
-                    o.__dict__["_selected"] = False
-                item.__dict__["_selected"] = True
+            item.__dict__["_selected"] = False
 
     def toggle_single(self, by_label=None):
         """Deprecated: toggle the selection of the single item in this control.
@@ -988,8 +984,7 @@ class ListControl(Control):
         deprecation(
             "control.items[0].selected = not control.items[0].selected")
         if len(self.items) != 1:
-            raise ItemCountError("'%s' is not a single-item control" %
-                                 self.name)
+            raise ItemCountError(f"'{self.name}' is not a single-item control")
         item = self.items[0]
         self._set_selected_state(item, not item.selected)
 
@@ -1004,8 +999,7 @@ class ListControl(Control):
         """
         deprecation("control.items[0].selected = <boolean>")
         if len(self.items) != 1:
-            raise ItemCountError("'%s' is not a single-item control" %
-                                 self.name)
+            raise ItemCountError(f"'{self.name}' is not a single-item control")
         self._set_selected_state(self.items[0], selected)
 
     def get_item_disabled(self, name, by_label=False, nr=None):
@@ -1111,25 +1105,25 @@ class ListControl(Control):
             o.__dict__["_control"] = self
 
     def __getattr__(self, name):
-        if name == "value":
-            if self.name is None:
-                return []
-            return [
-                o.name for o in self.items if o.selected and (not o.disabled)
-            ]
-        else:
-            raise AttributeError("%s instance has no attribute '%s'" %
-                                 (self.__class__.__name__, name))
+        if name != "value":
+            raise AttributeError(
+                f"{self.__class__.__name__} instance has no attribute '{name}'"
+            )
+        if self.name is None:
+            return []
+        return [
+            o.name for o in self.items if o.selected and (not o.disabled)
+        ]
 
     def __setattr__(self, name, value):
         if name == "value":
             if self.disabled:
-                raise AttributeError("control '%s' is disabled" % self.name)
+                raise AttributeError(f"control '{self.name}' is disabled")
             if self.readonly:
-                raise AttributeError("control '%s' is readonly" % self.name)
+                raise AttributeError(f"control '{self.name}' is readonly")
             self._set_value(value)
         elif name in ("name", "type", "multiple"):
-            raise AttributeError("%s attribute is readonly" % name)
+            raise AttributeError(f"{name} attribute is readonly")
         else:
             self.__dict__[name] = value
 
@@ -1156,8 +1150,7 @@ class ListControl(Control):
                 raise ItemNotFoundError("insufficient items with name %r" %
                                         name)
             else:
-                raise AttributeError(
-                    "insufficient non-disabled items with name %s" % name)
+                raise AttributeError(f"insufficient non-disabled items with name {name}")
         on = []
         off = []
         for o in items:
@@ -1185,7 +1178,7 @@ class ListControl(Control):
             names[nn] = names.setdefault(nn, 0) + 1
         for name, count in iteritems(names):
             on, off = self._get_items(name, count)
-            for i in range(count):
+            for _ in range(count):
                 if on:
                     item = on[0]
                     del on[0]
@@ -1292,10 +1285,9 @@ class ListControl(Control):
             infos.append("readonly")
         info = ", ".join(infos)
         if info:
-            info = " (%s)" % info
+            info = f" ({info})"
 
-        return "<%s(%s=[%s])%s>" % (self.__class__.__name__, name,
-                                    ", ".join(display), info)
+        return f'<{self.__class__.__name__}({name}=[{", ".join(display)}]){info}>'
 
 
 class RadioControl(ListControl):
@@ -1322,18 +1314,17 @@ class RadioControl(ListControl):
 
     def fixup(self):
         ListControl.fixup(self)
-        found = [o for o in self.items if o.selected and not o.disabled]
-        if not found:
-            if self._select_default:
-                for o in self.items:
-                    if not o.disabled:
-                        o.selected = True
-                        break
-        else:
+        if found := [o for o in self.items if o.selected and not o.disabled]:
             # Ensure only one item selected.  Choose the last one,
             # following IE and Firefox.
             for o in found[:-1]:
                 o.selected = False
+
+        elif self._select_default:
+            for o in self.items:
+                if not o.disabled:
+                    o.selected = True
+                    break
 
     def get_labels(self):
         return []
@@ -1448,14 +1439,7 @@ class SelectControl(ListControl):
             # otherwise it is a marker 'select started' token
             o = Item(self, attrs, index)
             o.__dict__["_selected"] = 'selected' in attrs
-            # add 'label' label and contents label, if different.  If both are
-            # provided, the 'label' label is used for display in HTML
-            # 4.0-compliant browsers (and any lower spec? not sure) while the
-            # contents are used for display in older or less-compliant
-            # browsers.  We make label objects for both, if the values are
-            # different.
-            label = attrs.get("label")
-            if label:
+            if label := attrs.get("label"):
                 o._labels.append(Label(label))
                 if contents and contents != label:
                     o._labels.append(Label(contents))
@@ -1522,9 +1506,7 @@ class SubmitControl(ScalarControl):
         return r
 
     def _totally_ordered_pairs(self):
-        if not self._clicked:
-            return []
-        return ScalarControl._totally_ordered_pairs(self)
+        return [] if not self._clicked else ScalarControl._totally_ordered_pairs(self)
 
 
 # ---------------------------------------------------
@@ -1550,11 +1532,10 @@ class ImageControl(SubmitControl):
         if name is None:
             return []
         pairs = [
-            (self._index, "%s.x" % name, str(clicked[0])),
-            (self._index + 1, "%s.y" % name, str(clicked[1])),
+            (self._index, f"{name}.x", str(clicked[0])),
+            (self._index + 1, f"{name}.y", str(clicked[1])),
         ]
-        value = self._value
-        if value:
+        if value := self._value:
             pairs.append((self._index + 2, name, value))
         return pairs
 
@@ -1858,10 +1839,7 @@ class HTMLForm:
         self.enctype = enctype
         self.form_encoding = encoding or 'utf-8'
         self.name = name
-        if attrs is not None:
-            self.attrs = dict(attrs)
-        else:
-            self.attrs = {}
+        self.attrs = dict(attrs) if attrs is not None else {}
         self.controls = []
         self._request_class = request_class
 
@@ -1904,11 +1882,7 @@ class HTMLForm:
         type = type.lower()
         klass = self.type2class.get(type)
         if klass is None:
-            if ignore_unknown:
-                klass = IgnoreControl
-            else:
-                klass = TextControl
-
+            klass = IgnoreControl if ignore_unknown else TextControl
         a = dict(attrs)
         if issubclass(klass, ListControl):
             control = klass(type, name, a, select_default, index)
@@ -1943,11 +1917,9 @@ class HTMLForm:
 # ---------------------------------------------------
 
     def __str__(self):
-        header = "%s%s %s %s" % ((self.name and self.name + " " or ""),
-                                 self.method, self.action, self.enctype)
+        header = f'{self.name and f"{self.name} " or ""}{self.method} {self.action} {self.enctype}'
         rep = [header]
-        for control in self.controls:
-            rep.append("  %s" % str(control))
+        rep.extend(f"  {str(control)}" for control in self.controls)
         return "<%s>" % "\n".join(rep)
 
 # ---------------------------------------------------
@@ -1987,16 +1959,14 @@ class HTMLForm:
         if by_label:
             deprecation("form.get_value_by_label(...)")
         c = self.find_control(name, type, kind, id, label=label, nr=nr)
-        if by_label:
-            try:
-                meth = c.get_value_by_label
-            except AttributeError:
-                raise NotImplementedError(
-                    "control '%s' does not yet support by_label" % c.name)
-            else:
-                return meth()
-        else:
+        if not by_label:
             return c.value
+        try:
+            meth = c.get_value_by_label
+        except AttributeError:
+            raise NotImplementedError(f"control '{c.name}' does not yet support by_label")
+        else:
+            return meth()
 
     def set_value(
             self,
@@ -2024,8 +1994,7 @@ class HTMLForm:
             try:
                 meth = c.set_value_by_label
             except AttributeError:
-                raise NotImplementedError(
-                    "control '%s' does not yet support by_label" % c.name)
+                raise NotImplementedError(f"control '{c.name}' does not yet support by_label")
             else:
                 meth(value)
         else:
@@ -2389,10 +2358,10 @@ class HTMLForm:
         if (nr is not None) and nr < 0:
             raise ValueError("control number must be a positive integer")
 
-        orig_nr = nr
         found = None
         ambiguous = False
 
+        orig_nr = nr
         for control in self.controls:
             if ((name is not None and name != control.name) and
                     (name is not Missing or control.name is not None)):
@@ -2426,26 +2395,25 @@ class HTMLForm:
 
         description = []
         if name is not None:
-            description.append("name %s" % repr(name))
+            description.append(f"name {repr(name)}")
         if type is not None:
-            description.append("type '%s'" % type)
+            description.append(f"type '{type}'")
         if kind is not None:
-            description.append("kind '%s'" % kind)
+            description.append(f"kind '{kind}'")
         if id is not None:
-            description.append("id '%s'" % id)
+            description.append(f"id '{id}'")
         if label is not None:
-            description.append("label '%s'" % label)
+            description.append(f"label '{label}'")
         if predicate is not None:
-            description.append("predicate %s" % predicate)
+            description.append(f"predicate {predicate}")
         if orig_nr:
             description.append("nr %d" % orig_nr)
         description = ", ".join(description)
 
         if ambiguous:
-            raise AmbiguityError("more than one control matching " +
-                                 description)
-        elif not found:
-            raise ControlNotFoundError("no control matching " + description)
+            raise AmbiguityError(f"more than one control matching {description}")
+        else:
+            raise ControlNotFoundError(f"no control matching {description}")
         assert False
 
     def _click(self,
@@ -2522,8 +2490,7 @@ class HTMLForm:
 
         if method == "GET":
             if self.enctype != "application/x-www-form-urlencoded":
-                raise ValueError("unknown GET form encoding type '%s'" %
-                                 self.enctype)
+                raise ValueError(f"unknown GET form encoding type '{self.enctype}'")
             parts = rest + (encode_query(), None)
             uri = self._urlunparse(parts)
             return uri, None, []
@@ -2545,10 +2512,9 @@ class HTMLForm:
                 mw.lastpart()
                 return uri, data.getvalue(), http_hdrs
             else:
-                raise ValueError("unknown POST form encoding type '%s'" %
-                                 self.enctype)
+                raise ValueError(f"unknown POST form encoding type '{self.enctype}'")
         else:
-            raise ValueError("Unknown method '%s'" % method)
+            raise ValueError(f"Unknown method '{method}'")
 
     def _switch_click(self, return_type, request_class=_request.Request):
         # This is called by HTMLForm and clickable Controls to hide switching

@@ -21,7 +21,7 @@ class DNSDumpsterAPI(object):
 
     def display_message(self, s):
         if self.verbose:
-            print('[verbose] %s' % s)
+            print(f'[verbose] {s}')
 
 
     def retrieve_results(self, table):
@@ -51,10 +51,7 @@ class DNSDumpsterAPI(object):
         return res
 
     def retrieve_txt_record(self, table):
-        res = []
-        for td in table.findAll('td'):
-            res.append(td.text)
-        return res
+        return [td.text for td in table.findAll('td')]
 
 
     def search(self, domain):
@@ -64,7 +61,7 @@ class DNSDumpsterAPI(object):
         req = s.get(dnsdumpster_url)
         soup = BeautifulSoup(req.content, 'html.parser')
         csrf_middleware = soup.findAll('input', attrs={'name': 'csrfmiddlewaretoken'})[0]['value']
-        self.display_message('Retrieved token: %s' % csrf_middleware)
+        self.display_message(f'Retrieved token: {csrf_middleware}')
 
         cookies = {'csrftoken': csrf_middleware}
         headers = {'Referer': dnsdumpster_url}
@@ -86,9 +83,7 @@ class DNSDumpsterAPI(object):
         soup = BeautifulSoup(req.content, 'html.parser')
         tables = soup.findAll('table')
 
-        res = {}
-        res['domain'] = domain
-        res['dns_records'] = {}
+        res = {'domain': domain, 'dns_records': {}}
         res['dns_records']['dns'] = self.retrieve_results(tables[0])
         res['dns_records']['mx'] = self.retrieve_results(tables[1])
         res['dns_records']['txt'] = self.retrieve_txt_record(tables[2])
@@ -97,7 +92,7 @@ class DNSDumpsterAPI(object):
         # Network mapping image
         try:
             val = soup.find('img', attrs={'class': 'img-responsive'})['src']
-            tmp_url = '{}{}'.format(dnsdumpster_url, val)
+            tmp_url = f'{dnsdumpster_url}{val}'
             image_data = requests.get(tmp_url).content.encode('base64')
         except:
             image_data = None
@@ -107,7 +102,7 @@ class DNSDumpsterAPI(object):
         # XLS hosts.
         # eg. tsebo.com-201606131255.xlsx
         try:
-            pattern = r'https://dnsdumpster.com/static/xls/' + domain + '-[0-9]{12}\.xlsx'
+            pattern = f'https://dnsdumpster.com/static/xls/{domain}' + '-[0-9]{12}\.xlsx'
             xls_url = re.findall(pattern, req.content)[0]
             xls_data = requests.get(xls_url).content.encode('base64')
         except:

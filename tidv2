@@ -157,25 +157,20 @@ class TIDapp(QtWidgets.QDialog):
             portgiven = True
             if port == "":
                 portgiven = False
-                if protocol == "https":
-                    port = "443"
-                else:
-                    port = "80"
+                port = "443" if protocol == "https" else "80"
             assert int(port) in range(1, 65535)
             if user != "" and passwd != "":
-                if self.addTargetDialog.ipOnly.isChecked():
-                    target = base
-                else:
-                    target = protocol + "://" + user + ":" + passwd + "@" + base
-                if portgiven:
-                    target = target + ":" + port
+                target = (
+                    base
+                    if self.addTargetDialog.ipOnly.isChecked()
+                    else f"{protocol}://{user}:{passwd}@{base}"
+                )
+            elif self.addTargetDialog.ipOnly.isChecked():
+                target = base
             else:
-                if self.addTargetDialog.ipOnly.isChecked():
-                    target = base
-                else:
-                    target = protocol + "://" + base
-                if portgiven:
-                    target = target + ":" + port
+                target = f"{protocol}://{base}"
+            if portgiven:
+                target = f"{target}:{port}"
             self.targetsListWidget.addItem(target)
             self.targetsListWidget.show()
             self.addTargetDialog.close()
@@ -185,10 +180,10 @@ class TIDapp(QtWidgets.QDialog):
             elif base2Error:
                 self.showError("Base URL must be provided.")
             else:
-                self.showError("'{}' is not a valid port number.".format(port))
+                self.showError(f"'{port}' is not a valid port number.")
             print("AssertionError")
         except ValueError:
-            self.showError("'{}' is not a valid port number.".format(port))
+            self.showError(f"'{port}' is not a valid port number.")
 
     def addClose(self):
         self.addTargetDialog.close()
@@ -258,25 +253,20 @@ class TIDapp(QtWidgets.QDialog):
             portgiven = True
             if port == "":
                 portgiven = False
-                if protocol == "https":
-                    port = "443"
-                else:
-                    port = "80"
+                port = "443" if protocol == "https" else "80"
             assert int(port) in range(1, 65535)
             if user != "" and passwd != "":
-                if self.editTargetDialog.ipOnly.isChecked():
-                    target = base
-                else:
-                    target = protocol + "://" + user + ":" + passwd + "@" + base
-                if portgiven:
-                    target = target + ":" + port
+                target = (
+                    base
+                    if self.editTargetDialog.ipOnly.isChecked()
+                    else f"{protocol}://{user}:{passwd}@{base}"
+                )
+            elif self.editTargetDialog.ipOnly.isChecked():
+                target = base
             else:
-                if self.editTargetDialog.ipOnly.isChecked():
-                    target = base
-                else:
-                    target = protocol + "://" + base
-                if portgiven:
-                    target = target + ":" + port
+                target = f"{protocol}://{base}"
+            if portgiven:
+                target = f"{target}:{port}"
             for item in self.targetsListWidget.selectedItems():
                 self.targetsListWidget.takeItem(self.targetsListWidget.row(item))
             self.targetsListWidget.addItem(target)
@@ -288,10 +278,10 @@ class TIDapp(QtWidgets.QDialog):
             elif base2Error:
                 self.showError("Base URL must be provided.")
             else:
-                self.showError("'{}' is not a valid port number.".format(port))
+                self.showError(f"'{port}' is not a valid port number.")
             print("AssertionError")
         except ValueError:
-            self.showError("'{}' is not a valid port number.".format(port))
+            self.showError(f"'{port}' is not a valid port number.")
 
     def closeEdit(self):
         self.editTargetDialog.close()
@@ -307,8 +297,8 @@ class TIDapp(QtWidgets.QDialog):
         try:
             targets = []
             filepath = self.sessionFileEdit.text()
-            assert os.path.isfile("core/sessioncache/{}".format(filepath)) and filepath != ""
-            with open("core/sessioncache/{}".format(filepath),"r") as f:
+            assert os.path.isfile(f"core/sessioncache/{filepath}") and filepath != ""
+            with open(f"core/sessioncache/{filepath}", "r") as f:
                 targets = [line.rstrip("\n") for line in f]
             self.targetsListWidget.clear()
             for vic in targets:
@@ -316,24 +306,24 @@ class TIDapp(QtWidgets.QDialog):
             self.targetsListWidget.show()
         except AssertionError:
             print("AssertionError")
-            self.showError("'{}' is not a valid session file.".format(filepath))
+            self.showError(f"'{filepath}' is not a valid session file.")
 
     def loadValSession(self):
         try:
             filepath = self.sessionFileEdit.text()
-            assert os.path.isfile("core/sessioncache/{}".format(filepath)) and filepath != ""
-            targets = shell.do_sessions("load --val {}".format(filepath), gui=True)
+            assert os.path.isfile(f"core/sessioncache/{filepath}") and filepath != ""
+            targets = shell.do_sessions(f"load --val {filepath}", gui=True)
             self.targetsListWidget.clear()
             for vic in targets:
                 self.targetsListWidget.addItem(vic)
             self.targetsListWidget.show()
         except AssertionError:
-            self.showError("'{}' is not a valid session file.".format(filepath))
+            self.showError(f"'{filepath}' is not a valid session file.")
             print("AssertionError")
 
     def fetchNetInfo(self):
         try:
-            mac = os.popen("cat /sys/class/net/{}/address".format(interface)).read()
+            mac = os.popen(f"cat /sys/class/net/{interface}/address").read()
             self.macDisplay.setText(mac)
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('google.com', 0))
@@ -343,13 +333,13 @@ class TIDapp(QtWidgets.QDialog):
             self.publicIpDisplay.setText(ipaddr)
             def_gw_device = os.popen("route | grep '^default' | grep -o '[^ ]*$'").read()
             self.whoIsDisplay.clear()
-            self.whoIsDisplay.addItem("Operating System: " + platform.system())
-            self.whoIsDisplay.addItem("Name: " + platform.node())
-            self.whoIsDisplay.addItem("Interface: " + def_gw_device)
+            self.whoIsDisplay.addItem(f"Operating System: {platform.system()}")
+            self.whoIsDisplay.addItem(f"Name: {platform.node()}")
+            self.whoIsDisplay.addItem(f"Interface: {def_gw_device}")
             self.networkTab.show()
         except Exception as e:
             self.showError(e)
-            print("Exception encountered: {}".format(e))
+            print(f"Exception encountered: {e}")
 
     def displayInfo(self):
         self.infoOptDialog = QtWidgets.QDialog()
@@ -379,7 +369,7 @@ class TIDapp(QtWidgets.QDialog):
                 for i in range(0, self.infoOptDialog.optionTable.rowCount()):
                     prop = self.infoOptDialog.optionTable.item(i, 0).text()
                     val = self.infoOptDialog.optionTable.item(i, 2).text()
-                    shell.do_set("{} {}".format(prop, val))
+                    shell.do_set(f"{prop} {val}")
         except Exception as e:
             self.showError(e)
         self.infoOptDialog.close()
@@ -403,26 +393,27 @@ class TIDapp(QtWidgets.QDialog):
                      "Port Scanners", "Web Crawlers",
                      "Misconfigurations", "Severe Vulnerabilities", "Password Attacks"]
         viclist =  [str(self.targetsListWidget.item(i).text()) for i in range(self.targetsListWidget.count())]
-        modlist = []
         root = self.treeView.invisibleRootItem()
-        for item in self.iterItems(root):
-            if item.checkState(0) == QtCore.Qt.Checked:
-                if "Phase " not in item.text(0) and "Additional" not in item.text(0):
-                    if item.text(0) not in blacklist:
-                        modlist.append(item.text(0))
+        modlist = [
+            item.text(0)
+            for item in self.iterItems(root)
+            if item.checkState(0) == QtCore.Qt.Checked
+            and "Phase " not in item.text(0)
+            and "Additional" not in item.text(0)
+            and item.text(0) not in blacklist
+        ]
         print(modlist)
         if not os.path.isfile("core/sessioncache/syn.val"):
             path = os.path.dirname(os.path.realpath(__file__))
             if "/home/" not in path:
-                os.system("pkexec /opt/TIDoS/core/methods/create.py OPT {}".format(username))
+                os.system(f"pkexec /opt/TIDoS/core/methods/create.py OPT {username}")
             else:
                 os.system("pkexec /home/{0}/TIDoS/core/methods/create.py HOME {0}".format(username))
         tlist = []
         for i in viclist:
-            j = targetparse(i)
-            if j:
+            if j := targetparse(i):
                 tlist.append(j)
-        createVal(tlist, modlist, "syn.val")   
+        createVal(tlist, modlist, "syn.val")
         if tor:
             os.system("konsole --hold -e 'sudo ./tidconsole.py -p -c syn.val'")
         else:
@@ -431,9 +422,11 @@ class TIDapp(QtWidgets.QDialog):
     def checkUpdate(self):
         result = shell.do_fetch("", gui=True)
         if result[0]:
-            self.fetchOutput.setText("TIDoS latest version is installed: {}".format(result[1]))
+            self.fetchOutput.setText(f"TIDoS latest version is installed: {result[1]}")
         else:
-            self.fetchOutput.setText("An update is available!\n\nCurrent version:   {}\nAvailable version: {}".format(variables.r_version, result[1]))
+            self.fetchOutput.setText(
+                f"An update is available!\n\nCurrent version:   {variables.r_version}\nAvailable version: {result[1]}"
+            )
             self.installUpdateButton.setEnabled(True)
             self.installUpdateButton.clicked.connect(self.installUpdate)
         self.show()

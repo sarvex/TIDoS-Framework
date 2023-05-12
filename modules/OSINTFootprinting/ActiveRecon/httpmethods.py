@@ -36,28 +36,28 @@ def httpmethods(web):
         from core.methods.print import posintact
         posintact("http methods") 
 
-        print(GR+' [*] Parsing Url...')
+        print(f'{GR} [*] Parsing Url...')
         time.sleep(0.7)
         web = web.replace('https://','')
         web = web.replace('http://','')
-        print(C+' [!] Making the connection...')
+        print(f'{C} [!] Making the connection...')
         conn = http.client.HTTPConnection(web)
         conn.request('OPTIONS','/')
         response = conn.getresponse()
         q = str(response.getheader('allow'))
         if 'None' not in q:
-            print(G+' [+] The following HTTP methods are allowed...'+C+color.TR2+C)
+            print(f'{G} [+] The following HTTP methods are allowed...{C}{color.TR2}{C}')
             methods = q.split(',')
             for method in methods:
-                print(O+'     '+method+C)
+                print(f'{O}     {method}{C}')
             save_data(database, module, lvl1, lvl2, lvl3, name, q)
         else:
-            print(R+' [-] HTTP Method Options Request Unsuccessful...')
+            print(f'{R} [-] HTTP Method Options Request Unsuccessful...')
             save_data(database, module, lvl1, lvl2, lvl3, name, "HTTP Method Options Request Unsuccessful.")
 
     except Exception as e:
-        print(R+' [-] Exception Encountered!')
-        print(R+' [-] Error : '+str(e))
+        print(f'{R} [-] Exception Encountered!')
+        print(f'{R} [-] Error : {str(e)}')
 
 def attack(web):
     web = web.fullurl

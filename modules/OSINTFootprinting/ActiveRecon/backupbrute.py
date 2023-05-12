@@ -50,35 +50,32 @@ def check0x00(web, dirpath, headers):
                 size = FileUtils.sizeHuman(size)
 
             resp = str(req.status_code)
-            if (resp == '200' or resp == '302' or resp == '304'):
-                print(C+' [*] Found : ' + C + web0x00 +GR+' - '+ size + C + ' ('+resp+')')
+            if resp in {'200', '302', '304'}:
+                print(f'{C} [*] Found : {C}{web0x00}{GR} - {size}{C} ({resp})')
                 file_paths.append(web0x00)
 
             else:
-                print(C+' [*] Checking : ' + B + web0x00 + R + ' ('+resp+')')
+                print(f'{C} [*] Checking : {B}{web0x00}{R} ({resp})')
         return file_paths
 
     except Exception as e:
-        print(R+' [-] Unknown Exception Encountered!')
-        print(R+' [-] Exception : '+str(e))
+        print(f'{R} [-] Unknown Exception Encountered!')
+        print(f'{R} [-] Exception : {str(e)}')
         return file_paths
 
 def getFile0x00(filepath):
 
     if os.path.exists(filepath) == True:
         time.sleep(0.5)
-        print(GR+' [*] Importing wordlist...')
+        print(f'{GR} [*] Importing wordlist...')
         with open(filepath, 'r') as f0:
             for f in f0:
                 f = f.strip('\n')
-                if f.startswith('/'):
-                    dir_path.append(f)
-                else:
-                    f = '/' + f
-                    dir_path.append(f)
-
+                if not f.startswith('/'):
+                    f = f'/{f}'
+                dir_path.append(f)
     else:
-        print(R+' [-] No file path found under ' +filepath+'!')
+        print(f'{R} [-] No file path found under {filepath}!')
     return dir_path
 
 def backupbrute(web):
@@ -91,17 +88,19 @@ def backupbrute(web):
     #print(R+'\n    ===================================')
     print(R+'\n     B A C K U P   B R U T E F O R C E')
     print(R+'    ---<>----<>----<>----<>----<>----<>\n')
-                 
-    print(C+' [*] Path to file to be used '+O+'(Default: files/fuzz-db/backup_paths.lst)...'+C)
-    fil = input(C+' [§] Your input (Press Enter if default) :> ')
+
+    print(
+        f'{C} [*] Path to file to be used {O}(Default: files/fuzz-db/backup_paths.lst)...{C}'
+    )
+    fil = input(f'{C} [§] Your input (Press Enter if default) :> ')
     if fil == '':
         fil = 'files/fuzz-db/backup_paths.lst'
     else:
-        print(GR+' [*] Checking filepath...')
+        print(f'{GR} [*] Checking filepath...')
         if os.path.exists(fil) == True:
-            print(C+' [+] File found!')
+            print(f'{C} [+] File found!')
         else:
-            print(R+' [-] File not found!')
+            print(f'{R} [-] File not found!')
 
     mo = getFile0x00(fil)
     gen_headers =    {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201',
@@ -114,17 +113,17 @@ def backupbrute(web):
         ul = check0x00(web, mo, gen_headers)
 
     except Exception as e:
-        print(R+' [-] Exception : '+str(e))
+        print(f'{R} [-] Exception : {str(e)}')
 
     if ul:
-        print(G+' [+] The following possible backups were found!'+C+color.TR2+C)
+        print(f'{G} [+] The following possible backups were found!{C}{color.TR2}{C}')
         for u in ul:
-            print(O+' [+] Path to backup file: '+C+color.TR3+C+G+u+C+color.TR2+C)
+            print(f'{O} [+] Path to backup file: {C}{color.TR3}{C}{G}{u}{C}{color.TR2}{C}')
             save_data(database, module, lvl1, lvl2, lvl3, name, u)
     else:
-        print(R+' [-] No backup directories or files were found!')
+        print(f'{R} [-] No backup directories or files were found!')
         save_data(database, module, lvl1, lvl2, lvl3, name, "No backups found.")
-    print(C+' [+] Done!')
+    print(f'{C} [+] Done!')
 
 def attack(web):
     web = web.fullurl

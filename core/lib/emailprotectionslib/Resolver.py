@@ -26,8 +26,7 @@ class resolver:
         self.last_resolver = name_server
         query = dnslib.DNSRecord.question(hostname, query_type.upper().strip())
         try:
-            response_q = query.send(name_server, 53, use_tcp)
-            if response_q:
+            if response_q := query.send(name_server, 53, use_tcp):
                 response = dnslib.DNSRecord.parse(response_q)
             else:
                 raise IOError("Empty Response")
@@ -49,10 +48,9 @@ class resolver:
                 trace('!Odd error code:', self.rcode, hostname, query_type)
             #Is this a perm error?  We will have to retry to find out.
             if self.rcode in ['SERVFAIL', 'REFUSED', 'FORMERR', 'NOTIMP', 'NOTAUTH']:
-                raise IOError('DNS Failure: ' + hostname + " - " + self.rcode)
-            #Did we get an empty body and a non-error code?
+                raise IOError(f'DNS Failure: {hostname} - {self.rcode}')
             elif not len(ret) and self.rcode != "NXDOMAIN":
-                raise IOError("DNS Error - " + self.rcode + " - for:" + hostname)
+                raise IOError(f"DNS Error - {self.rcode} - for:{hostname}")
         return ret
 
     def was_successful(self):
@@ -97,9 +95,8 @@ class resolver:
                 if record_type == "NS":
                     #Return all A records for this NS lookup.
                     a_lookup = self.query(record.rstrip("."), 'A')
-                    for a_host, a_type, a_record in a_lookup:
-                        ret.append(a_record)
-                #If a nameserver wasn't found try the parent of this sub.
+                    ret.extend(a_record for a_host, a_type, a_record in a_lookup)
+                        #If a nameserver wasn't found try the parent of this sub.
             hostname = hostname[hostname.find(".") + 1:]
         return ret
 

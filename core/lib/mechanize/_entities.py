@@ -1737,11 +1737,7 @@ if __name__ == '__main__':
     import re
     from html5lib.constants import entities
     entities = {k.lower().replace(';', ''): entities[k] for k in entities}
-    lines = []
-
-    for k in sorted(entities):
-        lines.append("    '%s': %r," % (k, entities[k]))
-
+    lines = ["    '%s': %r," % (k, entities[k]) for k in sorted(entities)]
     with open(__file__, 'r+b') as f:
         raw = f.read().decode('utf-8')
         raw = re.sub(r'^# ENTITY_DATA {{{.+^# }}}',

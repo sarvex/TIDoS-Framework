@@ -31,12 +31,18 @@ def creds(inp):
         if user != "" and passwd != "" and "@" not in url:
             if "https" in url:
                 domain = url.split("://")[1]
-                url2 = "https://" + user + ":" + passwd + "@" + domain
+                url2 = f"https://{user}:{passwd}@{domain}"
             elif "http" in url:
                 domain = url.split("://")[1]
-                url2 = "http://" + user + ":" + passwd + "@" + domain
+                url2 = f"http://{user}:{passwd}@{domain}"
             else:
-                print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Provide target formatted as in viclist")
+                print(
+                    f"{R} [-] "
+                    + "\033[0m"
+                    + color.UNDERLINE
+                    + "\033[1m"
+                    + "Provide target formatted as in viclist"
+                )
                 correct = False
             if correct:
                 found = False
@@ -47,20 +53,32 @@ def creds(inp):
                         vars.targets[i].urlpasswd = passwd
                         found = True
                 if found:
-                    print(" [+] {} > {}".format(url,url2))
+                    print(f" [+] {url} > {url2}")
         else:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "An error occurred. Either, no credentials were provided or the URL already contains credentials.")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "An error occurred. Either, no credentials were provided or the URL already contains credentials."
+            )
     elif "del" in inp:
         correct = True
         url = inp.split("del")[1].strip()
         if "https" in url:
             domain = url.split("@")[1]
-            url2 = "https://" + domain
+            url2 = f"https://{domain}"
         elif "http" in url:
             domain = url.split("@")[1]
-            url2 = "http://" + domain
+            url2 = f"http://{domain}"
         else:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Provide target formatted as in viclist")
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Provide target formatted as in viclist"
+            )
             correct = False
         if correct:
             found = False
@@ -71,9 +89,15 @@ def creds(inp):
                     vars.targets[i].urlpasswd = ""
                     found = True
             if found:
-                print(" [+] {} > {}".format(url,url2))
+                print(f" [+] {url} > {url2}")
     else:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Syntax: creds add|del target")
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Syntax: creds add|del target"
+        )
 
 def attackdrop(target):
     if "@" in target.fullurl:
@@ -89,4 +113,10 @@ def attackdrop(target):
         #else:
         #    return "http://" + splitar
     else:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "No credentials found.")
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "No credentials found."
+        )

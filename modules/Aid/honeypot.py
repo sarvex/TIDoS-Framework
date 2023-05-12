@@ -39,29 +39,29 @@ def honeypot(web):
     #print(R+'    ===================================')
     #print(R+'\n     H O N E Y P O T   D E T E C T O R')
     #print(R+'    ---<>----<>----<>----<>----<>----<>')
-                 
-    print(GR+' [*] Configuring APi request...')
+
+    print(f'{GR} [*] Configuring APi request...')
     time.sleep(0.7)
-    print(O+' [!] Reading APi Key...')
+    print(f'{O} [!] Reading APi Key...')
     requests = session()
     if SHODAN_API_KEY != '':
-        print(G+' [+] Key Found : '+O+SHODAN_API_KEY)
+        print(f'{G} [+] Key Found : {O}{SHODAN_API_KEY}')
         web0 = web.split('//')[1]
         ip = socket.gethostbyname(web0)
-        honey = "https://api.shodan.io/labs/honeyscore/"+ip+"?key="+SHODAN_API_KEY
+        honey = f"https://api.shodan.io/labs/honeyscore/{ip}?key={SHODAN_API_KEY}"
         req = requests.get(honey).text
         read = float(req)
         if read < 5.0:
-            print(G+' [+] Target does not seem to be a potential Honeypot...')
-            print(G+' [+] Honey Score : '+O+str(read*100)+'%')
+            print(f'{G} [+] Target does not seem to be a potential Honeypot...')
+            print(f'{G} [+] Honey Score : {O}{str(read * 100)}%')
 
         else:
-            print(R+' [-] Potential Honeypot Detected!')
-            print(R+' [+] Honey Score : '+O+str(read*100)+'%')
+            print(f'{R} [-] Potential Honeypot Detected!')
+            print(f'{R} [+] Honey Score : {O}{str(read * 100)}%')
 
     else:
-        print(R+' [-] Shodan APi key not set!')
-        print(R+' [-] Cannot use this module!')
+        print(f'{R} [-] Shodan APi key not set!')
+        print(f'{R} [-] Cannot use this module!')
 
 def attack(web):
     web = web.fullurl

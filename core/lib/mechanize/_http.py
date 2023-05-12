@@ -103,12 +103,10 @@ class MechanizeRobotFileParser(RobotFileParser):
                          (self.url, exc))
             return
         lines = []
-        line = f.readline()
-        while line:
+        while line := f.readline():
             lines.append(line.strip())
-            line = f.readline()
         status = f.code
-        if status == 401 or status == 403:
+        if status in [401, 403]:
             self.disallow_all = True
             debug_robots("disallow all")
         elif status >= 400:
@@ -168,7 +166,7 @@ class HTTPRobotRulesProcessor(BaseHandler):
             except AttributeError:
                 debug("%r instance does not support set_opener" %
                       self.rfp.__class__)
-            self.rfp.set_url(scheme + "://" + host + "/robots.txt")
+            self.rfp.set_url(f"{scheme}://{host}/robots.txt")
             self.rfp.set_timeout(request.timeout)
             self.rfp.read()
             self._host = host
@@ -176,15 +174,14 @@ class HTTPRobotRulesProcessor(BaseHandler):
         ua = request.get_header("User-agent", "")
         if self.rfp.can_fetch(ua, request.get_full_url()):
             return request
-        else:
-            # XXX This should really have raised URLError.  Too late now...
-            factory = self.http_response_class or create_response_info
-            msg = b"request disallowed by robots.txt"
-            raise RobotExclusionError(
-                request,
-                request.get_full_url(),
-                403, msg,
-                factory(BytesIO()), BytesIO(msg))
+        # XXX This should really have raised URLError.  Too late now...
+        factory = self.http_response_class or create_response_info
+        msg = b"request disallowed by robots.txt"
+        raise RobotExclusionError(
+            request,
+            request.get_full_url(),
+            403, msg,
+            factory(BytesIO()), BytesIO(msg))
 
     https_request = http_request
 

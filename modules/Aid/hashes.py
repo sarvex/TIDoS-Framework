@@ -23,8 +23,8 @@ def hashes():
     #print(R+'\n    =============================')
     print(R+'\n     H A S H   G E N E R A T O R')
     print(R+'    ---<>----<>----<>----<>----<>\n')
-    message = input(O+" [§] Enter the string :> ")
-    print(GR+' [+] Generating hashes...')
+    message = input(f"{O} [§] Enter the string :> ")
+    print(f'{GR} [+] Generating hashes...')
     time.sleep(0.6)
 
     md5 = hashlib.md5(message)
@@ -39,10 +39,10 @@ def hashes():
     sha512 = hashlib.sha512(message)
     sha512 = sha512.hexdigest()
 
-    print(G+" [+] MD5 Hash : "+O, md5)
-    print(G+" [+] SHA1 Hash : "+O, sha1)
-    print(G+" [+] SHA256 Hash : "+O, sha256)
-    print(G+" [+] SHA512 Hash : "+O, sha512)
+    print(f"{G} [+] MD5 Hash : {O}", md5)
+    print(f"{G} [+] SHA1 Hash : {O}", sha1)
+    print(f"{G} [+] SHA256 Hash : {O}", sha256)
+    print(f"{G} [+] SHA512 Hash : {O}", sha512)
 
 def attack(web):
     hashes()

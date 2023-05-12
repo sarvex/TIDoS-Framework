@@ -17,6 +17,7 @@ _____, ___
 └──╼ VainlyStrain
 """
 
+
 import os, sys, multiprocessing
 
 global modir
@@ -50,7 +51,7 @@ version = "2.0"
 r_version = ""
 with open("core/doc/version", "r") as versionfile:
     r_version = versionfile.read().strip()
-e_version = r_version + "#lsp"
+e_version = f"{r_version}#lsp"
 module = ""
 targets = []
 processes = multiprocessing.cpu_count()
@@ -63,16 +64,24 @@ username=""
 with open("core/doc/local", "r") as localfile:
     username = localfile.read().strip()
 
-modir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/"
-sploidir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/SploitLoot/"
-scadir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/ScanningEnumeration/"
-pasdir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/OSINTFootprinting/PassiveRecon/"
-acdir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/OSINTFootprinting/ActiveRecon/"
-infdir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/OSINTFootprinting/InfoDisclose/"
-vlndir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/VlnAnalysis/"
-aidir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/Aid/"
-postdir = os.path.dirname(os.path.realpath(__file__)) + "/../modules/PostSploit/"
-phpsploit = os.path.dirname(os.path.realpath(__file__)) + "/../../phpsploit/phpsploit"
+modir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/"
+sploidir = (
+    f"{os.path.dirname(os.path.realpath(__file__))}/../modules/SploitLoot/"
+)
+scadir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/ScanningEnumeration/"
+pasdir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/OSINTFootprinting/PassiveRecon/"
+acdir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/OSINTFootprinting/ActiveRecon/"
+infdir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/OSINTFootprinting/InfoDisclose/"
+vlndir = (
+    f"{os.path.dirname(os.path.realpath(__file__))}/../modules/VlnAnalysis/"
+)
+aidir = f"{os.path.dirname(os.path.realpath(__file__))}/../modules/Aid/"
+postdir = (
+    f"{os.path.dirname(os.path.realpath(__file__))}/../modules/PostSploit/"
+)
+phpsploit = (
+    f"{os.path.dirname(os.path.realpath(__file__))}/../../phpsploit/phpsploit"
+)
 
 ai = "modules.Aid."
 op = "modules.OSINTFootprinting.PassiveRecon."

@@ -22,12 +22,11 @@ class SpfRecord(object):
     def get_redirected_record(self):
         if self.recursion_depth >= 10:
             return SpfRecord(self.get_redirect_domain())
-        else:
-            redirect_domain = self.get_redirect_domain()
-            if redirect_domain is not None:
-                redirect_record = SpfRecord.from_domain(redirect_domain)
-                redirect_record.recursion_depth = self.recursion_depth + 1
-                return redirect_record
+        redirect_domain = self.get_redirect_domain()
+        if redirect_domain is not None:
+            redirect_record = SpfRecord.from_domain(redirect_domain)
+            redirect_record.recursion_depth = self.recursion_depth + 1
+            return redirect_record
 
     def get_redirect_domain(self):
         redirect_domain = None
@@ -35,63 +34,58 @@ class SpfRecord(object):
             for mechanism in self.mechanisms:
                 redirect_mechanism = re.match('redirect=(.*)', mechanism)
                 if redirect_mechanism is not None:
-                    redirect_domain = redirect_mechanism.group(1)
+                    redirect_domain = redirect_mechanism[1]
             return redirect_domain
 
     def get_include_domains(self):
-        include_domains = []
-        if self.mechanisms is not None:
-            for mechanism in self.mechanisms:
-                include_mechanism = re.match('include:(.*)', mechanism)
-                if include_mechanism is not None:
-                    include_domains.append(include_mechanism.group(1))
-            return include_domains
-        else:
+        if self.mechanisms is None:
             return []
+        include_domains = []
+        for mechanism in self.mechanisms:
+            include_mechanism = re.match('include:(.*)', mechanism)
+            if include_mechanism is not None:
+                include_domains.append(include_mechanism[1])
+        return include_domains
 
     def get_include_records(self):
         if self.recursion_depth >= 10:
             return {}
-        else:
-            include_domains = self.get_include_domains()
-            include_records = {}
-            for domain in include_domains:
-                try:
-                    include_records[domain] = SpfRecord.from_domain(domain)
-                    include_records[domain].recursion_depth = self.recursion_depth + 1
-                except IOError as e:
-                    logging.exception(e)
-                    include_records[domain] = None
-            return include_records
+        include_domains = self.get_include_domains()
+        include_records = {}
+        for domain in include_domains:
+            try:
+                include_records[domain] = SpfRecord.from_domain(domain)
+                include_records[domain].recursion_depth = self.recursion_depth + 1
+            except IOError as e:
+                logging.exception(e)
+                include_records[domain] = None
+        return include_records
 
     def _is_all_mechanism_strong(self):
-        strong_spf_all_string = True
-        if self.all_string is not None:
-            if not (self.all_string == "~all" or self.all_string == "-all"):
-                strong_spf_all_string = False
-        else:
-            strong_spf_all_string = False
-        return strong_spf_all_string
+        return (
+            self.all_string is None or self.all_string in ["~all", "-all"]
+        ) and self.all_string is not None
 
     def _is_redirect_mechanism_strong(self):
         redirect_domain = self.get_redirect_domain()
 
-        if redirect_domain is not None:
-            redirect_mechanism = SpfRecord.from_domain(redirect_domain)
-
-            if redirect_mechanism is not None:
-                return redirect_mechanism.is_record_strong()
-            else:
-                return False
-        else:
+        if redirect_domain is None:
             return False
+        redirect_mechanism = SpfRecord.from_domain(redirect_domain)
+
+        return (
+            redirect_mechanism.is_record_strong()
+            if redirect_mechanism is not None
+            else False
+        )
 
     def _are_include_mechanisms_strong(self):
         include_records = self.get_include_records()
-        for record in include_records:
-            if include_records[record] is not None and include_records[record].is_record_strong():
-                return True
-        return False
+        return any(
+            include_records[record] is not None
+            and include_records[record].is_record_strong()
+            for record in include_records
+        )
 
     def is_record_strong(self):
         strong_spf_record = self._is_all_mechanism_strong()
@@ -111,15 +105,14 @@ class SpfRecord(object):
 
     @staticmethod
     def from_spf_string(spf_string, domain):
-        if spf_string is not None:
-            spf_record = SpfRecord(domain)
-            spf_record.record = spf_string
-            spf_record.mechanisms = _extract_mechanisms(spf_string)
-            spf_record.version = _extract_version(spf_string)
-            spf_record.all_string = _extract_all_mechanism(spf_record.mechanisms)
-            return spf_record
-        else:
+        if spf_string is None:
             return SpfRecord(domain)
+        spf_record = SpfRecord(domain)
+        spf_record.record = spf_string
+        spf_record.mechanisms = _extract_mechanisms(spf_string)
+        spf_record.version = _extract_version(spf_string)
+        spf_record.all_string = _extract_all_mechanism(spf_record.mechanisms)
+        return spf_record
 
     @staticmethod
     def from_domain(domain):
@@ -133,10 +126,7 @@ class SpfRecord(object):
 def _extract_version(spf_string):
     version_pattern = "^v=(spf.)"
     version_match = re.match(version_pattern, spf_string)
-    if version_match is not None:
-        return version_match.group(1)
-    else:
-        return None
+    return version_match[1] if version_match is not None else None
 
 
 def _extract_all_mechanism(mechanisms):
@@ -155,9 +145,7 @@ def _extract_mechanisms(spf_string):
     spf_mechanism_pattern = ("(?:((?:\+|-|~)?(?:a|mx|ptr|include"
                              "|ip4|ip6|exists|redirect|exp|all)"
                              "(?:(?::|=|/)?(?:\S*))?) ?)")
-    spf_mechanisms = re.findall(spf_mechanism_pattern, spf_string)
-
-    return spf_mechanisms
+    return re.findall(spf_mechanism_pattern, spf_string)
 
 
 def _merge_txt_record_strings(txt_record):
@@ -170,8 +158,7 @@ def _merge_txt_record_strings(txt_record):
 def _match_spf_record(txt_record):
     clean_txt_record = _merge_txt_record_strings(txt_record)
     spf_pattern = re.compile('^(v=spf.*)')
-    potential_spf_match = spf_pattern.match(str(clean_txt_record))
-    return potential_spf_match
+    return spf_pattern.match(str(clean_txt_record))
 
 
 def _find_record_from_answers(txt_records):

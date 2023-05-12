@@ -36,29 +36,29 @@ def sharedns(web):
     #print(R+'     S H A R E D   D N S   H O S T N A M E S ')
     #print(R+'    =========================================\n')
     from core.methods.print import posintact
-    posintact("shared dns hostnames") 
+    posintact("shared dns hostnames")
     print(C+' [!] Looking up for name servers on which website is hosted...\n'+G)
     time.sleep(0.7)
-    system('dig +nocmd '+web+' ns +noall +answer')
+    system(f'dig +nocmd {web} ns +noall +answer')
     h = input(C+'\n [*] Enter any DNS Server from above :> ')
     time.sleep(0.4)
-    print(GR + ' [!] Discovering hosts on same DNS Server...')
+    print(f'{GR} [!] Discovering hosts on same DNS Server...')
     time.sleep(0.4)
     print(GR +" [~] Result: \n"+ color.END)
     domains = [h]
     for dom in domains:
-        text = requests.get('http://api.hackertarget.com/findshareddns/?q=' + dom).text
-        dns = str(text)
+        text = requests.get(f'http://api.hackertarget.com/findshareddns/?q={dom}').text
+        dns = text
         if 'error' in dns:
             print(R+' [-] Outbound Query Exception!\n')
             time.sleep(0.8)
         elif 'No results found' in dns:
-            print(R+' [-] No shared DNS nameserver hosts...')
+            print(f'{R} [-] No shared DNS nameserver hosts...')
             save_data(database, module, lvl1, lvl2, lvl3, name, "No shared DNS nameserver hosts.")
         else:
             p = dns.splitlines()
             for i in p:
-                print(O+' [+] Site found :>'+C+color.TR3+C+G+i+C+color.TR2+C)
+                print(f'{O} [+] Site found :>{C}{color.TR3}{C}{G}{i}{C}{color.TR2}{C}')
                 time.sleep(0.02)
             save_data(database, module, lvl1, lvl2, lvl3, name, dns)
 

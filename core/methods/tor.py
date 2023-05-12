@@ -58,10 +58,24 @@ def torpipe(controller):
             vars.tor = controller
             return True
         else:
-            print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Tor service not running. Aborting..."+color.END)
+            print(
+                f"{R} [-] "
+                + "\033[0m"
+                + color.UNDERLINE
+                + "\033[1m"
+                + "Tor service not running. Aborting..."
+                + color.END
+            )
             return False
     except subprocess.CalledProcessError:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Tor service not installed or running. Aborting..."+color.END)
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + "Tor service not installed or running. Aborting..."
+            + color.END
+        )
         return False
 
 def initcheck():
@@ -74,9 +88,15 @@ def torcheck():
     ipaddr = s.get('http://ip.42.pl/raw').text
     #ip = str(ipaddr).split("'")[1].strip()
     if vars.initip.strip() is not ipaddr:
-        print(" [+] Successfully connected to Tor. IP {} > {}".format(vars.initip, ipaddr))
+        print(f" [+] Successfully connected to Tor. IP {vars.initip} > {ipaddr}")
     else:
-        print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "Not connected to Tor: Attacker IP used: {}. Aborting.{}".format(ipaddr, color.END))
+        print(
+            f"{R} [-] "
+            + "\033[0m"
+            + color.UNDERLINE
+            + "\033[1m"
+            + f"Not connected to Tor: Attacker IP used: {ipaddr}. Aborting.{color.END}"
+        )
         sys.exit()
     #except:
     #    print(R + " [-] " + "\033[0m" + color.UNDERLINE + "\033[1m" + "IPcheck socket failure.")

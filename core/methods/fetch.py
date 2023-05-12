@@ -32,13 +32,12 @@ def fetchinit(a):
         onmain = onver.split("-")[0]
         onrev = onver.split("-")[1]
         onlist = onmain.split(".")
-        uptodate = True
-        for i in range(0, len(locallist)):
-            if int(locallist[i]) < int(onlist[i]):
-                uptodate = False
-        if uptodate:
-            if int(localrev) < int(onrev):
-                uptodate = False
+        uptodate = all(
+            int(locallist[i]) >= int(onlist[i])
+            for i in range(0, len(locallist))
+        )
+        if uptodate and int(localrev) < int(onrev):
+            uptodate = False
         if not uptodate:
             varis.upd = True
     except:

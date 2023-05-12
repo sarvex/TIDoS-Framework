@@ -63,7 +63,7 @@ def get1(sequence):
 
 def isstringlike(x):
     try:
-        x + ""
+        f"{x}"
     except Exception:
         return False
     else:
@@ -87,9 +87,7 @@ def my_timegm(tt):
 days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-months_lower = []
-for month in months:
-    months_lower.append(month.lower())
+months_lower = [month.lower() for month in months]
 
 
 def time2isoz(t=None):
@@ -138,14 +136,12 @@ def offset_from_tz_string(tz):
     offset = None
     if tz in UTC_ZONES:
         offset = 0
-    else:
-        m = timezone_re.search(tz)
-        if m:
-            offset = 3600 * int(m.group(2))
-            if m.group(3):
-                offset = offset + 60 * int(m.group(3))
-            if m.group(1) == '-':
-                offset = -offset
+    elif m := timezone_re.search(tz):
+        offset = 3600 * int(m.group(2))
+        if m.group(3):
+            offset = offset + 60 * int(m.group(3))
+        if m.group(1) == '-':
+            offset = -offset
     return offset
 
 
@@ -188,9 +184,9 @@ def _str2time(day, mon, yr, hr, min, sec, tz):
         m = m - tmp
         if abs(m) > 50:
             if m > 0:
-                yr = yr + 100
+                yr += 100
             else:
-                yr = yr - 100
+                yr -= 100
 
     # convert UTC time tuple to seconds since epoch (not timezone-adjusted)
     t = my_timegm((yr, mon, day, hr, min, sec, tz))
